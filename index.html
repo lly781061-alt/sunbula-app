@@ -96,10 +96,12 @@
   .pdf-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #e5e7eb; font-size: 12px; }
   #cameraVideo { width: 100%; max-height: 230px; border-radius: 12px; background: #000; object-fit: cover; }
 
+  .clickable-name { cursor: pointer; display: inline-block; text-decoration: underline; text-decoration-color: rgba(0,0,0,0.18); text-underline-offset: 3px; }
   .rent-big-name { font-size: calc(var(--app-font-size) + 4px); font-weight: 800; line-height: 1.25; }
   .rent-small-equip { font-size: calc(var(--app-font-size) - 2px); opacity: 0.85; margin-top: 3px; }
   .rent-dates-inline { font-size: calc(var(--app-font-size) - 2px); font-weight: bold; margin-top: 5px; padding: 4px 8px; border-radius: 8px; background: rgba(13, 148, 136, 0.1); display: inline-block; }
   .draft-equip-row { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 7px 10px; margin-bottom: 6px; font-size: 12px; }
+  .detail-toolbar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
 
   @media print {
     body * { visibility: hidden !important; }
@@ -293,17 +295,23 @@
     </div>
   </div>
 
-  <!-- نافذة تفاصيل العميل ودينـه -->
+  <!-- نافذة تفاصيل العميل ودينـه (تتضمن التعديل، تغيير اللون، الحذف) -->
   <div class="modal" id="debtDetailModal">
     <div class="modal-box">
       <div class="modal-title"><span id="ddTitle">تفاصيل حساب العميل</span></div>
       <input type="hidden" id="ddCustomerId">
+
+      <div class="detail-toolbar">
+        <button type="button" class="btn btn-blue" style="flex:1; font-size:12px;" onclick="editCustomerInfo()">✏️ تعديل</button>
+        <button type="button" class="btn btn-amber" style="flex:1; font-size:12px;" onclick="openQuickColorFromDetail('debt')">🎨 تغيير اللون</button>
+        <button type="button" class="btn btn-red" style="flex:1; font-size:12px;" onclick="document.getElementById('ddInlineDeleteConfirm').style.display='block'">🗑️ حذف</button>
+      </div>
+
       <div style="background:#f9fafb; padding:10px; border-radius:12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
         <div>
           <h3 id="ddCustomerName" style="font-size:16px; font-weight:bold;"></h3>
           <p id="ddCustomerPhone" style="font-size:12px; color:#6b7280;"></p>
         </div>
-        <button class="btn btn-gray" style="font-size:11px; padding:5px 8px;" onclick="editCustomerInfo()">✏️ تعديل</button>
       </div>
 
       <div id="ddPhotoBox" style="margin-bottom:12px; display:none;">
@@ -336,7 +344,6 @@
 
       <div class="modal-actions">
         <button class="btn btn-teal" onclick="openDebtPdfVoucher()">📄 مشاركة PDF</button>
-        <button class="btn btn-red" onclick="document.getElementById('ddInlineDeleteConfirm').style.display='block'">🗑️ حذف</button>
         <button class="btn btn-gray" onclick="closeModal('debtDetailModal')">إغلاق</button>
       </div>
     </div>
@@ -409,26 +416,46 @@
     </div>
   </div>
 
-  <!-- نافذة تفاصيل الإيجار -->
+  <!-- نافذة تفاصيل الإيجار (تعديل، تغيير اللون، حذف، وإضافة عدة جديدة بتاريخ جديد) -->
   <div class="modal" id="rentDetailModal">
     <div class="modal-box">
       <div class="modal-title" id="rdTitle">تفاصيل الإيجار</div>
       <input type="hidden" id="rdRentId">
+
+      <div class="detail-toolbar">
+        <button type="button" class="btn btn-blue" style="flex:1; font-size:12px;" onclick="saveRentEdit()">✏️ حفظ التعديل</button>
+        <button type="button" class="btn btn-amber" style="flex:1; font-size:12px;" onclick="openQuickColorFromDetail('rent')">🎨 تغيير اللون</button>
+        <button type="button" class="btn btn-red" style="flex:1; font-size:12px;" onclick="deleteRentRecord()">🗑️ حذف</button>
+      </div>
+
       <div class="form-group"><label>اسم المستأجر</label><input type="text" id="rdCustomer" class="form-control"></div>
       <div class="form-group"><label>رقم الهاتف</label><input type="text" id="rdPhone" class="form-control"></div>
       <div class="form-group"><label>العدد</label><input type="number" id="rdCount" class="form-control"></div>
       <div class="form-group"><label>سعر المعدة (د.ع)</label><input type="number" id="rdItemPrice" class="form-control"></div>
       <div class="form-group"><label>سعر الإيجار (د.ع/يوم)</label><input type="number" id="rdDailyPrice" class="form-control"></div>
       <div class="form-group"><label>ملاحظات</label><input type="text" id="rdNote" class="form-control"></div>
+
+      <div id="rdAddNewEquipBox" style="background:#f0fdfa; border:1px solid #99f6e4; border-radius:12px; padding:10px; margin-bottom:10px;">
+        <div style="font-size:12px; font-weight:bold; color:#0f766e; margin-bottom:6px;">➕ إضافة عدة جديدة لهذه العملية بتاريخ جديد (يبقى التاريخ القديم كما هو)</div>
+        <div class="form-group" style="margin-bottom:6px;"><label>المعدة الجديدة</label><select id="rdNewEquipSelect" class="form-control" onchange="syncRdNewEquipDefaults()"></select></div>
+        <div style="display:flex; gap:6px;">
+          <div class="form-group" style="flex:1; margin-bottom:6px;"><label>التاريخ الجديد</label><input type="date" id="rdNewEquipDate" class="form-control"></div>
+          <div class="form-group" style="width:72px; margin-bottom:6px;"><label>العدد</label><input type="number" id="rdNewEquipCount" class="form-control" value="1" min="1"></div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <div class="form-group" style="flex:1; margin-bottom:6px;"><label>سعر المعدة</label><input type="number" id="rdNewItemPrice" class="form-control" value="0"></div>
+          <div class="form-group" style="flex:1; margin-bottom:6px;"><label>إيجار/يوم</label><input type="number" id="rdNewDailyPrice" class="form-control" value="0"></div>
+        </div>
+        <button type="button" class="btn btn-teal" style="width:100%; font-size:12px;" onclick="addNewEquipEntryForRent()">+ إضافة عملية عدة جديدة بالتاريخ المختار</button>
+      </div>
+
       <div id="rdPhotoBox" style="margin-bottom:10px; display:none;">
         <img id="rdPhotoImg" class="photo-preview" alt="صورة مرفقة بالإيجار">
       </div>
       <div id="rdExtraInfo" style="font-size:12px; color:#6b7280; margin:10px 0; background:#f9fafb; padding:8px; border-radius:8px;"></div>
       <div class="modal-actions">
         <button class="btn btn-teal" onclick="openRentPdfVoucher()">📄 مشاركة PDF</button>
-        <button class="btn btn-red" onclick="deleteRentRecord()">حذف</button>
-        <button class="btn btn-gray" onclick="closeModal('rentDetailModal')">إلغاء</button>
-        <button class="btn btn-blue" onclick="saveRentEdit()">حفظ</button>
+        <button class="btn btn-gray" onclick="closeModal('rentDetailModal')">إغلاق</button>
       </div>
     </div>
   </div>
@@ -556,7 +583,7 @@
     } catch (_) {}
   }
 
-  let state = JSON.parse(localStorage.getItem('sunbula_db_v28')) || JSON.parse(localStorage.getItem('sunbula_db_v27')) || JSON.parse(localStorage.getItem('sunbula_db_v26')) || JSON.parse(localStorage.getItem('sunbula_db_v25')) || {
+  let state = JSON.parse(localStorage.getItem('sunbula_db_v29')) || JSON.parse(localStorage.getItem('sunbula_db_v28')) || JSON.parse(localStorage.getItem('sunbula_db_v27')) || {
     storeName: 'محل الكهربائيات والإنشائيات - السنبلة',
     userEmail: DEFAULT_DRIVE_EMAIL,
     emailBackups: {},
@@ -638,6 +665,75 @@
   let remotePushTimer = null;
   let selectedOperation = null;
   let currentVoucherShareText = '';
+  let isHandlingBackPop = false;
+
+  function initBackButtonTrap() {
+    try {
+      if (!window.history.state || !window.history.state.sunbulaGuard) {
+        window.history.replaceState({ sunbulaGuard: true, level: 0 }, '');
+        window.history.pushState({ sunbulaGuard: true, level: 1 }, '');
+      }
+      window.addEventListener('popstate', () => {
+        if (isHandlingBackPop) return;
+        isHandlingBackPop = true;
+        try {
+          const closedSomething = handleAppBackStep();
+          if (!closedSomething) {
+            // منع الخروج المباشر وإبقاء المستخدم داخل التطبيق خطوة واحدة
+            window.history.pushState({ sunbulaGuard: true, level: 1 }, '');
+          } else {
+            window.history.pushState({ sunbulaGuard: true, level: 1 }, '');
+          }
+        } finally {
+          setTimeout(() => { isHandlingBackPop = false; }, 120);
+        }
+      });
+    } catch (_) {}
+  }
+
+  function handleAppBackStep() {
+    const openModals = Array.from(document.querySelectorAll('.modal.open'));
+    if (openModals.length > 0) {
+      const topModal = openModals[openModals.length - 1];
+      if (topModal.id === 'qrModal') closeQRModal();
+      else closeModal(topModal.id);
+      return true;
+    }
+
+    const searchInput = document.getElementById('searchBox');
+    if (searchInput && searchInput.value.trim()) {
+      searchInput.value = '';
+      render();
+      return true;
+    }
+
+    if (currentTab === 'rents' && returnedSearchQuery) {
+      returnedSearchQuery = '';
+      render();
+      return true;
+    }
+
+    if (currentTab !== 'pos') {
+      switchTab('pos');
+      return true;
+    }
+
+    return false;
+  }
+
+  function openQuickColorFromDetail(kind) {
+    if (kind === 'debt') {
+      const id = parseInt(document.getElementById('ddCustomerId').value, 10);
+      closeModal('debtDetailModal');
+      openOperationMenu('debt', id);
+      toggleOperationColorPicker();
+    } else if (kind === 'rent') {
+      const id = parseInt(document.getElementById('rdRentId').value, 10);
+      closeModal('rentDetailModal');
+      openOperationMenu('rent', id);
+      toggleOperationColorPicker();
+    }
+  }
 
   function openDebtPdfVoucher() {
     const id = parseInt(document.getElementById('ddCustomerId').value, 10);
@@ -913,7 +1009,7 @@
       if (state.liveSync && state.liveSync.enabled) {
         state.liveSync.lastSyncDateTime = nowStr;
       }
-      localStorage.setItem('sunbula_db_v28', JSON.stringify(state));
+      localStorage.setItem('sunbula_db_v29', JSON.stringify(state));
       applyTheme();
 
       if (triggerRemotePush && !isApplyingRemote && state.liveSync && state.liveSync.enabled && state.liveSync.syncUrl && state.liveSync.syncUrl.trim()) {
@@ -952,10 +1048,10 @@
         body: JSON.stringify(payload)
       });
       state.liveSync.lastSyncStatus = 'تمت المزامنة تلقائياً';
-      localStorage.setItem('sunbula_db_v28', JSON.stringify(state));
+      localStorage.setItem('sunbula_db_v29', JSON.stringify(state));
     } catch (_) {
       state.liveSync.lastSyncStatus = 'محلي (بانتظار الاتصال/رابط)';
-      localStorage.setItem('sunbula_db_v28', JSON.stringify(state));
+      localStorage.setItem('sunbula_db_v29', JSON.stringify(state));
     }
   }
 
@@ -991,7 +1087,7 @@
           if (remoteTs > 0) setLocalSyncTs(remoteTs);
           state.liveSync.lastSyncDateTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
           state.liveSync.lastSyncStatus = 'تم السحب من السحابة';
-          localStorage.setItem('sunbula_db_v28', JSON.stringify(state));
+          localStorage.setItem('sunbula_db_v29', JSON.stringify(state));
           applyTheme();
           if (!silent) {
             alert('تمت مزامنة البيانات من السحابة بنجاح!');
@@ -1939,17 +2035,77 @@
     save(); closeModal('rentModal'); render();
   }
 
+  function syncRdNewEquipDefaults() {
+    const sel = document.getElementById('rdNewEquipSelect');
+    if (!sel || !sel.selectedOptions.length) return;
+    const opt = sel.selectedOptions[0];
+    document.getElementById('rdNewItemPrice').value = opt.getAttribute('data-item-price') || 0;
+    document.getElementById('rdNewDailyPrice').value = opt.getAttribute('data-price') || 0;
+  }
+
+  function addNewEquipEntryForRent() {
+    const parentId = parseInt(document.getElementById('rdRentId').value, 10);
+    const parentRent = state.rents.find(x => x.id === parentId);
+    if (!parentRent) return;
+
+    const sel = document.getElementById('rdNewEquipSelect');
+    const eq = state.equipments.find(x => String(x.id) === String(sel.value));
+    const eqName = eq ? eq.name : (sel.selectedOptions[0] ? sel.selectedOptions[0].text.split(' (')[0] : 'معدة');
+    const newDate = document.getElementById('rdNewEquipDate').value || new Date().toISOString().slice(0, 10);
+    const newCount = Math.max(1, parseInt(document.getElementById('rdNewEquipCount').value) || 1);
+    const newItemPrice = parseFloat(document.getElementById('rdNewItemPrice').value) || 0;
+    const newDailyPrice = parseFloat(document.getElementById('rdNewDailyPrice').value) || 0;
+
+    // يسجل عملية مؤجرة جديدة بتاريخ جديد فقط دون تغيير تاريخ العملية القديمة
+    state.rents.unshift({
+      id: Date.now(),
+      customer: parentRent.customer,
+      equipId: eq ? eq.id : sel.value,
+      equipName: `${eqName}${newCount > 1 ? ' × ' + newCount : ''}`,
+      count: newCount,
+      itemPrice: newItemPrice * newCount,
+      amount: newDailyPrice * newCount,
+      dailyPrice: newDailyPrice * newCount,
+      phone: parentRent.phone || 'لا يوجد',
+      startDate: newDate,
+      status: 'active',
+      note: parentRent.note || '',
+      photo: parentRent.photo || '',
+      cardColor: parentRent.cardColor || '#ffffff',
+      textColor: parentRent.textColor || '#111827',
+      equipmentItems: [{ name: eqName, count: newCount, itemPrice: newItemPrice, dailyPrice: newDailyPrice }]
+    });
+
+    logAction('الإيجار', `إضافة عدة جديدة (${eqName}) للمستأجر ${parentRent.customer} بتاريخ ${newDate}`);
+    save();
+    closeModal('rentDetailModal');
+    render();
+    alert(`تم تسجيل العملية الجديدة بتاريخ ${newDate} مع الإبقاء على تاريخ العملية السابقة.`);
+  }
+
   function openRentDetailModal(id) {
     const r = state.rents.find(x => x.id === id);
     if (!r) return;
     document.getElementById('rdRentId').value = r.id;
-    document.getElementById('rdTitle').innerText = r.status === 'active' ? 'تعديل قيد الإيجار النشط' : 'تفاصيل الإيجار المنتهي';
+    document.getElementById('rdTitle').innerText = r.status === 'active' ? 'تفاصيل الإيجار النشط' : 'تفاصيل الإيجار المنتهي';
     document.getElementById('rdCustomer').value = r.customer;
     document.getElementById('rdPhone').value = r.phone;
     document.getElementById('rdCount').value = r.count;
     document.getElementById('rdItemPrice').value = Number(r.itemPrice || 0);
     document.getElementById('rdDailyPrice').value = r.dailyPrice;
     document.getElementById('rdNote').value = r.note || '';
+
+    const addBox = document.getElementById('rdAddNewEquipBox');
+    if (r.status === 'active') {
+      addBox.style.display = 'block';
+      const newEqSel = document.getElementById('rdNewEquipSelect');
+      newEqSel.innerHTML = state.equipments.map(eq => `<option value="${eq.id}" data-item-price="${eq.itemPrice || 0}" data-price="${eq.price}">${eq.name} (معدة: ${Number(eq.itemPrice || 0).toLocaleString()} | إيجار: ${eq.price.toLocaleString()})</option>`).join('');
+      document.getElementById('rdNewEquipDate').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('rdNewEquipCount').value = '1';
+      syncRdNewEquipDefaults();
+    } else {
+      addBox.style.display = 'none';
+    }
 
     const photoBox = document.getElementById('rdPhotoBox');
     const photoImg = document.getElementById('rdPhotoImg');
@@ -2017,6 +2173,37 @@
     save(); closeModal('returnRentModal'); render();
   }
 
+  function buildReturnedRentsHtml() {
+    const filteredReturned = state.rents.filter(r =>
+      r.status === 'returned' &&
+      (r.customer.toLowerCase().includes(returnedSearchQuery) || r.equipName.toLowerCase().includes(returnedSearchQuery))
+    );
+
+    if (filteredReturned.length === 0) {
+      return '<p style="text-align:center; color:#6b7280; font-size:12px; padding:10px;">لا توجد عمليات مستلمة مطابقة.</p>';
+    }
+
+    return filteredReturned.map(r => `
+      <div class="card" onclick="openOperationMenu('rent', ${r.id})" style="${getCardStyle(r.cardColor, r.textColor)} border-right: 4px solid #059669; display:flex; justify-content:space-between; align-items:center; opacity:0.95;">
+        <div>
+          <div class="rent-big-name clickable-name" onclick="event.stopPropagation(); openRentDetailModal(${r.id})">${r.customer}</div>
+          <div class="rent-small-equip">المعدات: ${r.equipName}</div>
+          <div class="rent-dates-inline">تاريخ الأخذ: ${r.startDate || '-'} | تاريخ الإرجاع: ${r.returnDate || '-'}</div>
+          <div style="font-size:12px; color:var(--rent-price-color); font-weight:bold; margin-top:4px;">المبلغ المستلم: ${(r.amount || 0).toLocaleString()} د.ع</div>
+        </div>
+        <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:10px; font-size:11px; font-weight:bold;">مستلم</span>
+      </div>
+    `).join('');
+  }
+
+  function updateReturnedSearchList(inputEl) {
+    returnedSearchQuery = (inputEl.value || '').toLowerCase();
+    const listContainer = document.getElementById('returnedRentsList');
+    if (listContainer) {
+      listContainer.innerHTML = buildReturnedRentsHtml();
+    }
+  }
+
   function render() {
     const area = document.getElementById('mainContent');
     const q = document.getElementById('searchBox').value.toLowerCase();
@@ -2028,9 +2215,9 @@
 
       area.innerHTML = `
         <b style="font-size:14px; display:block; margin-bottom:10px;">نتائج البحث الشامل عن: "${q}"</b>
-        ${matchItems.map(i => `<div class="card" style="${getCardStyle(i.cardColor, i.textColor)}" onclick="openOperationMenu('item', ${i.id})"><b>صنف: ${i.name}</b><br><span style="color:var(--item-price-color); font-size:12px;">السعر: ${i.price} د.ع</span></div>`).join('')}
-        ${matchDebts.map(d => `<div class="card" style="${getCardStyle(d.cardColor, d.textColor)}" onclick="openOperationMenu('debt', ${d.id})"><b>مدين: ${d.name}</b><br><span style="color:#b45309; font-size:12px;">المتبقي: ${d.amount.toLocaleString()} د.ع</span></div>`).join('')}
-        ${matchRents.map(r => `<div class="card" style="${getCardStyle(r.cardColor, r.textColor)}" onclick="openOperationMenu('rent', ${r.id})"><div class="rent-big-name">${r.customer}</div><div class="rent-small-equip">المعدات: ${r.equipName} | الحالة: ${r.status === 'active' ? 'نشط' : 'منتهي (مستلم)'}</div>${r.status === 'returned' ? `<div class="rent-dates-inline">أخذ: ${r.startDate} | إرجاع: ${r.returnDate || ''}</div>` : ''}</div>`).join('')}
+        ${matchItems.map(i => `<div class="card" style="${getCardStyle(i.cardColor, i.textColor)}" onclick="openOperationMenu('item', ${i.id})"><b class="clickable-name" onclick="event.stopPropagation(); openItemModal(${i.id})">صنف: ${i.name}</b><br><span style="color:var(--item-price-color); font-size:12px;">السعر: ${i.price} د.ع</span></div>`).join('')}
+        ${matchDebts.map(d => `<div class="card" style="${getCardStyle(d.cardColor, d.textColor)}" onclick="openOperationMenu('debt', ${d.id})"><b class="clickable-name" onclick="event.stopPropagation(); openDebtDetail(${d.id})">مدين: ${d.name}</b><br><span style="color:#b45309; font-size:12px;">المتبقي: ${d.amount.toLocaleString()} د.ع</span></div>`).join('')}
+        ${matchRents.map(r => `<div class="card" style="${getCardStyle(r.cardColor, r.textColor)}" onclick="openOperationMenu('rent', ${r.id})"><div class="rent-big-name clickable-name" onclick="event.stopPropagation(); openRentDetailModal(${r.id})">${r.customer}</div><div class="rent-small-equip">المعدات: ${r.equipName} | الحالة: ${r.status === 'active' ? 'نشط' : 'منتهي (مستلم)'}</div>${r.status === 'returned' ? `<div class="rent-dates-inline">أخذ: ${r.startDate} | إرجاع: ${r.returnDate || ''}</div>` : ''}</div>`).join('')}
         ${matchItems.length === 0 && matchDebts.length === 0 && matchRents.length === 0 ? '<p style="text-align:center; color:#6b7280; padding:20px;">لا توجد نتائج مطابقة.</p>' : ''}
       `;
       return;
@@ -2048,7 +2235,7 @@
             </div>
           `}
         </div>
-        ${state.items.map(i => `<div class="card" onclick="openOperationMenu('item', ${i.id})" style="${getCardStyle(i.cardColor, i.textColor)} display:flex; justify-content:space-between; align-items:center;"><div><b>${i.name}</b><br><span style="font-size:12px; color:var(--item-price-color);">السعر: ${i.price.toLocaleString()} د.ع</span></div><button class="btn btn-blue" onclick="event.stopPropagation();addToCart(${i.id})">+ إضافة</button></div>`).join('')}
+        ${state.items.map(i => `<div class="card" onclick="openOperationMenu('item', ${i.id})" style="${getCardStyle(i.cardColor, i.textColor)} display:flex; justify-content:space-between; align-items:center;"><div><b class="clickable-name" onclick="event.stopPropagation(); openItemModal(${i.id})">${i.name}</b><br><span style="font-size:12px; color:var(--item-price-color);">السعر: ${i.price.toLocaleString()} د.ع</span></div><button class="btn btn-blue" onclick="event.stopPropagation();addToCart(${i.id})">+ إضافة</button></div>`).join('')}
       `;
     } 
     else if (currentTab === 'store') {
@@ -2071,7 +2258,7 @@
         ${filtered.map(i => `
           <div class="card" onclick="openOperationMenu('item', ${i.id})" style="${getCardStyle(i.cardColor, i.textColor)} display:flex; justify-content:space-between; align-items:center;">
             <div>
-              <b style="font-size:15px;">${i.name}</b>
+              <b class="clickable-name" style="font-size:15px;" onclick="event.stopPropagation(); openItemModal(${i.id})">${i.name}</b>
               <div style="font-size:12px; opacity:0.8;">القسم: ${i.section} | الكمية: ${i.qty}${i.photo ? ' | 🖼️ مرفق صورة' : ''}</div>
             </div>
             <div style="color:var(--item-price-color); font-weight:bold; font-size:15px;">${i.price.toLocaleString()} د.ع</div>
@@ -2107,7 +2294,7 @@
         ${state.debts.map(d => `
           <div class="card" onclick="openOperationMenu('debt', ${d.id})" style="${getCardStyle(d.cardColor, d.textColor)} display:flex; justify-content:space-between; align-items:center;">
             <div>
-              <b style="font-size:15px;">${d.name}</b><br>
+              <b class="clickable-name" style="font-size:15px;" onclick="event.stopPropagation(); openDebtDetail(${d.id})">${d.name}</b><br>
               <span style="font-size:11px; opacity:0.8;">📞 ${d.phone}${d.photo ? ' | 🖼️ مرفق صورة' : ''}</span>
             </div>
             <div style="font-weight:bold; color:var(--price-color); font-size:16px;">${d.amount.toLocaleString()} د.ع</div>
@@ -2116,8 +2303,6 @@
       `;
     } 
     else if (currentTab === 'rents') {
-      const filteredReturned = state.rents.filter(r => r.status === 'returned' && (r.customer.toLowerCase().includes(returnedSearchQuery) || r.equipName.toLowerCase().includes(returnedSearchQuery)));
-
       area.innerHTML = `
         <div style="display:flex; gap:8px; margin-bottom:10px;">
           <button class="q-btn q-rent" style="flex:1; padding:10px;" onclick="openRentModal()">🛠️ إيجار جديد</button>
@@ -2131,7 +2316,7 @@
 
         <b style="font-size:13px; display:block; margin:15px 0 8px 0;">قيد الإيجار النشط</b>
         ${state.rents.filter(r => r.status === 'active').map(r => `
-          <div class="card" onclick="openOperationMenu('rent', ${r.id})" style="${getCardStyle(r.cardColor, r.textColor)} border-right: 4px solid #2563eb; display:flex; justify-content:space-between; align-items:center;">
+          <div class="card" onclick="openRentDetailModal(${r.id})" style="${getCardStyle(r.cardColor, r.textColor)} border-right: 4px solid #2563eb; display:flex; justify-content:space-between; align-items:center;">
             <div>
               <div class="rent-big-name">${r.customer}</div>
               <div class="rent-small-equip">المعدات: ${r.equipName}</div>
@@ -2149,20 +2334,9 @@
           <b style="font-size:13px;">سجل الإيجارات المنتهية (المستلمة)</b>
         </div>
         <div style="margin-bottom:8px;">
-          <input type="text" id="returnedSearchInput" class="search-input" placeholder="🔍 بحث في العمليات المستلمة (اسم العميل أو المعدة)..." value="${returnedSearchQuery}" oninput="returnedSearchQuery=this.value.toLowerCase();render()">
+          <input type="text" id="returnedSearchInput" class="search-input" placeholder="🔍 بحث في العمليات المستلمة (اسم العميل أو المعدة)..." value="${returnedSearchQuery}" oninput="updateReturnedSearchList(this)">
         </div>
-        ${filteredReturned.map(r => `
-          <div class="card" onclick="openOperationMenu('rent', ${r.id})" style="${getCardStyle(r.cardColor, r.textColor)} border-right: 4px solid #059669; display:flex; justify-content:space-between; align-items:center; opacity:0.95;">
-            <div>
-              <div class="rent-big-name">${r.customer}</div>
-              <div class="rent-small-equip">المعدات: ${r.equipName}</div>
-              <div class="rent-dates-inline">تاريخ الأخذ: ${r.startDate || '-'} | تاريخ الإرجاع: ${r.returnDate || '-'}</div>
-              <div style="font-size:12px; color:var(--rent-price-color); font-weight:bold; margin-top:4px;">المبلغ المستلم: ${(r.amount || 0).toLocaleString()} د.ع</div>
-            </div>
-            <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:10px; font-size:11px; font-weight:bold;">مستلم</span>
-          </div>
-        `).join('')}
-        ${filteredReturned.length === 0 ? '<p style="text-align:center; color:#6b7280; font-size:12px; padding:10px;">لا توجد عمليات مستلمة مطابقة.</p>' : ''}
+        <div id="returnedRentsList">${buildReturnedRentsHtml()}</div>
       `;
     } 
     else if (currentTab === 'reports') {
@@ -2382,7 +2556,9 @@
 
   function startKeepLikeSyncLoop() {
     setInterval(() => {
-      if (!document.hidden && state.liveSync && state.liveSync.enabled && state.liveSync.syncUrl) {
+      const hasOpenModal = !!document.querySelector('.modal.open');
+      const isTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+      if (!document.hidden && !hasOpenModal && !isTyping && state.liveSync && state.liveSync.enabled && state.liveSync.syncUrl) {
         pullFromRemoteSync(true).then(updated => {
           if (updated) render();
         });
@@ -2390,7 +2566,8 @@
     }, 5000);
 
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && state.liveSync && state.liveSync.enabled && state.liveSync.syncUrl) {
+      const hasOpenModal = !!document.querySelector('.modal.open');
+      if (!document.hidden && !hasOpenModal && state.liveSync && state.liveSync.enabled && state.liveSync.syncUrl) {
         pullFromRemoteSync(true).then(updated => {
           if (updated) render();
         });
@@ -2399,6 +2576,7 @@
   }
 
   setupAppIdentity();
+  initBackButtonTrap();
   if (state.driveAutoRestore && state.driveAutoRestore.enabled) {
     runAutoRestoreNow(true);
   }
