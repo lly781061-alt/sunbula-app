@@ -96,7 +96,7 @@
   .pdf-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #e5e7eb; font-size: 12px; }
   #cameraVideo { width: 100%; max-height: 230px; border-radius: 12px; background: #000; object-fit: cover; }
 
-  .clickable-name { cursor: pointer; display: inline-block; text-decoration: underline; text-decoration-color: rgba(0,0,0,0.18); text-underline-offset: 3px; }
+  .clickable-name { cursor: pointer; display: inline-block; }
   .rent-big-name { font-size: calc(var(--app-font-size) + 4px); font-weight: 800; line-height: 1.25; }
   .rent-small-equip { font-size: calc(var(--app-font-size) - 2px); opacity: 0.85; margin-top: 3px; }
   .rent-dates-inline { font-size: calc(var(--app-font-size) - 2px); font-weight: bold; margin-top: 5px; padding: 4px 8px; border-radius: 8px; background: rgba(13, 148, 136, 0.1); display: inline-block; }
@@ -295,7 +295,7 @@
     </div>
   </div>
 
-  <!-- نافذة تفاصيل العميل ودينـه (تتضمن التعديل، تغيير اللون، الحذف) -->
+  <!-- نافذة تفاصيل العميل ودينـه (تتضمن التعديل، تغيير اللون، الحذف، والكاميرا والمعرض) -->
   <div class="modal" id="debtDetailModal">
     <div class="modal-box">
       <div class="modal-title"><span id="ddTitle">تفاصيل حساب العميل</span></div>
@@ -314,8 +314,15 @@
         </div>
       </div>
 
-      <div id="ddPhotoBox" style="margin-bottom:12px; display:none;">
-        <img id="ddPhotoImg" class="photo-preview" alt="صورة مرفقة بالدين">
+      <div class="form-group">
+        <label>صورة الدين / المرفق (الكاميرا أو المعرض)</label>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-blue" style="flex:1;" onclick="document.getElementById('ddCameraInput').click()">📷 الكاميرا</button>
+          <button type="button" class="btn btn-gray" style="flex:1;" onclick="document.getElementById('ddGalleryInput').click()">🖼️ المعرض</button>
+        </div>
+        <input type="file" id="ddCameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleGenericPhoto(this, 'debtDetail')">
+        <input type="file" id="ddGalleryInput" accept="image/*" style="display:none;" onchange="handleGenericPhoto(this, 'debtDetail')">
+        <img id="ddPhotoImg" class="photo-preview" style="display:none;" alt="صورة مرفقة بالدين">
       </div>
 
       <div style="text-align:center; background:#eff6ff; padding:12px; border-radius:12px; margin-bottom:12px;">
@@ -377,7 +384,7 @@
     </div>
   </div>
 
-  <!-- نافذة إيجار جديد (دعم أكثر من معدة في نفس العملية + سعر المعدة وسعر الإيجار) -->
+  <!-- نافذة إيجار جديد -->
   <div class="modal" id="rentModal">
     <div class="modal-box">
       <div class="modal-title">تسجيل إيجار معدة جديد</div>
@@ -416,7 +423,7 @@
     </div>
   </div>
 
-  <!-- نافذة تفاصيل الإيجار (تعديل، تغيير اللون، حذف، وإضافة عدة جديدة بتاريخ جديد) -->
+  <!-- نافذة تفاصيل الإيجار (تعديل، تغيير اللون، حذف، إضافة عدة جديدة بتاريخ جديد، وكاميرا ومعرض) -->
   <div class="modal" id="rentDetailModal">
     <div class="modal-box">
       <div class="modal-title" id="rdTitle">تفاصيل الإيجار</div>
@@ -435,6 +442,17 @@
       <div class="form-group"><label>سعر الإيجار (د.ع/يوم)</label><input type="number" id="rdDailyPrice" class="form-control"></div>
       <div class="form-group"><label>ملاحظات</label><input type="text" id="rdNote" class="form-control"></div>
 
+      <div class="form-group">
+        <label>صورة الإيجار / المرفق (الكاميرا أو المعرض)</label>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-blue" style="flex:1;" onclick="document.getElementById('rdCameraInput').click()">📷 الكاميرا</button>
+          <button type="button" class="btn btn-gray" style="flex:1;" onclick="document.getElementById('rdGalleryInput').click()">🖼️ المعرض</button>
+        </div>
+        <input type="file" id="rdCameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleGenericPhoto(this, 'rentDetail')">
+        <input type="file" id="rdGalleryInput" accept="image/*" style="display:none;" onchange="handleGenericPhoto(this, 'rentDetail')">
+        <img id="rdPhotoImg" class="photo-preview" style="display:none;" alt="صورة مرفقة بالإيجار">
+      </div>
+
       <div id="rdAddNewEquipBox" style="background:#f0fdfa; border:1px solid #99f6e4; border-radius:12px; padding:10px; margin-bottom:10px;">
         <div style="font-size:12px; font-weight:bold; color:#0f766e; margin-bottom:6px;">➕ إضافة عدة جديدة لهذه العملية بتاريخ جديد (يبقى التاريخ القديم كما هو)</div>
         <div class="form-group" style="margin-bottom:6px;"><label>المعدة الجديدة</label><select id="rdNewEquipSelect" class="form-control" onchange="syncRdNewEquipDefaults()"></select></div>
@@ -449,9 +467,6 @@
         <button type="button" class="btn btn-teal" style="width:100%; font-size:12px;" onclick="addNewEquipEntryForRent()">+ إضافة عملية عدة جديدة بالتاريخ المختار</button>
       </div>
 
-      <div id="rdPhotoBox" style="margin-bottom:10px; display:none;">
-        <img id="rdPhotoImg" class="photo-preview" alt="صورة مرفقة بالإيجار">
-      </div>
       <div id="rdExtraInfo" style="font-size:12px; color:#6b7280; margin:10px 0; background:#f9fafb; padding:8px; border-radius:8px;"></div>
       <div class="modal-actions">
         <button class="btn btn-teal" onclick="openRentPdfVoucher()">📄 مشاركة PDF</button>
@@ -583,7 +598,7 @@
     } catch (_) {}
   }
 
-  let state = JSON.parse(localStorage.getItem('sunbula_db_v29')) || JSON.parse(localStorage.getItem('sunbula_db_v28')) || JSON.parse(localStorage.getItem('sunbula_db_v27')) || {
+  let state = JSON.parse(localStorage.getItem('sunbula_db_v30')) || JSON.parse(localStorage.getItem('sunbula_db_v29')) || JSON.parse(localStorage.getItem('sunbula_db_v28')) || {
     storeName: 'محل الكهربائيات والإنشائيات - السنبلة',
     userEmail: DEFAULT_DRIVE_EMAIL,
     emailBackups: {},
@@ -677,13 +692,8 @@
         if (isHandlingBackPop) return;
         isHandlingBackPop = true;
         try {
-          const closedSomething = handleAppBackStep();
-          if (!closedSomething) {
-            // منع الخروج المباشر وإبقاء المستخدم داخل التطبيق خطوة واحدة
-            window.history.pushState({ sunbulaGuard: true, level: 1 }, '');
-          } else {
-            window.history.pushState({ sunbulaGuard: true, level: 1 }, '');
-          }
+          handleAppBackStep();
+          window.history.pushState({ sunbulaGuard: true, level: 1 }, '');
         } finally {
           setTimeout(() => { isHandlingBackPop = false; }, 120);
         }
@@ -1009,7 +1019,7 @@
       if (state.liveSync && state.liveSync.enabled) {
         state.liveSync.lastSyncDateTime = nowStr;
       }
-      localStorage.setItem('sunbula_db_v29', JSON.stringify(state));
+      localStorage.setItem('sunbula_db_v30', JSON.stringify(state));
       applyTheme();
 
       if (triggerRemotePush && !isApplyingRemote && state.liveSync && state.liveSync.enabled && state.liveSync.syncUrl && state.liveSync.syncUrl.trim()) {
@@ -1048,10 +1058,10 @@
         body: JSON.stringify(payload)
       });
       state.liveSync.lastSyncStatus = 'تمت المزامنة تلقائياً';
-      localStorage.setItem('sunbula_db_v29', JSON.stringify(state));
+      localStorage.setItem('sunbula_db_v30', JSON.stringify(state));
     } catch (_) {
       state.liveSync.lastSyncStatus = 'محلي (بانتظار الاتصال/رابط)';
-      localStorage.setItem('sunbula_db_v29', JSON.stringify(state));
+      localStorage.setItem('sunbula_db_v30', JSON.stringify(state));
     }
   }
 
@@ -1087,7 +1097,7 @@
           if (remoteTs > 0) setLocalSyncTs(remoteTs);
           state.liveSync.lastSyncDateTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
           state.liveSync.lastSyncStatus = 'تم السحب من السحابة';
-          localStorage.setItem('sunbula_db_v29', JSON.stringify(state));
+          localStorage.setItem('sunbula_db_v30', JSON.stringify(state));
           applyTheme();
           if (!silent) {
             alert('تمت مزامنة البيانات من السحابة بنجاح!');
@@ -1654,11 +1664,33 @@
             const prev = document.getElementById('dPhotoPreview');
             prev.src = dataUrl;
             prev.style.display = 'block';
+          } else if (targetType === 'debtDetail') {
+            const id = parseInt(document.getElementById('ddCustomerId').value, 10);
+            const d = state.debts.find(x => x.id === id);
+            if (d) {
+              d.photo = dataUrl;
+              save();
+            }
+            const imgEl = document.getElementById('ddPhotoImg');
+            imgEl.src = dataUrl;
+            imgEl.style.display = 'block';
+            render();
           } else if (targetType === 'rent') {
             pendingRentPhoto = dataUrl;
             const prev = document.getElementById('rPhotoPreview');
             prev.src = dataUrl;
             prev.style.display = 'block';
+          } else if (targetType === 'rentDetail') {
+            const id = parseInt(document.getElementById('rdRentId').value, 10);
+            const r = state.rents.find(x => x.id === id);
+            if (r) {
+              r.photo = dataUrl;
+              save();
+            }
+            const imgEl = document.getElementById('rdPhotoImg');
+            imgEl.src = dataUrl;
+            imgEl.style.display = 'block';
+            render();
           }
         };
         img.src = e.target.result;
@@ -1797,15 +1829,16 @@
     document.getElementById('ddCustomerPhone').innerText = 'الهاتف: ' + (d.phone || 'لا يوجد');
     document.getElementById('ddCustomerBalance').innerText = d.amount.toLocaleString() + ' د.ع';
     document.getElementById('ddInputAmount').value = ''; document.getElementById('ddInputNote').value = '';
+    document.getElementById('ddCameraInput').value = '';
+    document.getElementById('ddGalleryInput').value = '';
 
-    const photoBox = document.getElementById('ddPhotoBox');
     const photoImg = document.getElementById('ddPhotoImg');
     if (d.photo) {
       photoImg.src = d.photo;
-      photoBox.style.display = 'block';
+      photoImg.style.display = 'block';
     } else {
       photoImg.src = '';
-      photoBox.style.display = 'none';
+      photoImg.style.display = 'none';
     }
     
     document.getElementById('ddHistoryList').innerHTML = (d.history || []).map((h, idx) => `
@@ -2056,7 +2089,6 @@
     const newItemPrice = parseFloat(document.getElementById('rdNewItemPrice').value) || 0;
     const newDailyPrice = parseFloat(document.getElementById('rdNewDailyPrice').value) || 0;
 
-    // يسجل عملية مؤجرة جديدة بتاريخ جديد فقط دون تغيير تاريخ العملية القديمة
     state.rents.unshift({
       id: Date.now(),
       customer: parentRent.customer,
@@ -2094,6 +2126,8 @@
     document.getElementById('rdItemPrice').value = Number(r.itemPrice || 0);
     document.getElementById('rdDailyPrice').value = r.dailyPrice;
     document.getElementById('rdNote').value = r.note || '';
+    document.getElementById('rdCameraInput').value = '';
+    document.getElementById('rdGalleryInput').value = '';
 
     const addBox = document.getElementById('rdAddNewEquipBox');
     if (r.status === 'active') {
@@ -2107,14 +2141,13 @@
       addBox.style.display = 'none';
     }
 
-    const photoBox = document.getElementById('rdPhotoBox');
     const photoImg = document.getElementById('rdPhotoImg');
     if (r.photo) {
       photoImg.src = r.photo;
-      photoBox.style.display = 'block';
+      photoImg.style.display = 'block';
     } else {
       photoImg.src = '';
-      photoBox.style.display = 'none';
+      photoImg.style.display = 'none';
     }
 
     let extra = `المعدات: ${r.equipName} | سعر المعدة: ${Number(r.itemPrice || 0).toLocaleString()} د.ع | السعر اليومي: ${r.dailyPrice.toLocaleString()} د.ع<br>تاريخ الأخذ: ${r.startDate}`;
@@ -2184,9 +2217,9 @@
     }
 
     return filteredReturned.map(r => `
-      <div class="card" onclick="openOperationMenu('rent', ${r.id})" style="${getCardStyle(r.cardColor, r.textColor)} border-right: 4px solid #059669; display:flex; justify-content:space-between; align-items:center; opacity:0.95;">
+      <div class="card" onclick="openRentDetailModal(${r.id})" style="${getCardStyle(r.cardColor, r.textColor)} border-right: 4px solid #059669; display:flex; justify-content:space-between; align-items:center; opacity:0.95;">
         <div>
-          <div class="rent-big-name clickable-name" onclick="event.stopPropagation(); openRentDetailModal(${r.id})">${r.customer}</div>
+          <div class="rent-big-name">${r.customer}</div>
           <div class="rent-small-equip">المعدات: ${r.equipName}</div>
           <div class="rent-dates-inline">تاريخ الأخذ: ${r.startDate || '-'} | تاريخ الإرجاع: ${r.returnDate || '-'}</div>
           <div style="font-size:12px; color:var(--rent-price-color); font-weight:bold; margin-top:4px;">المبلغ المستلم: ${(r.amount || 0).toLocaleString()} د.ع</div>
@@ -2215,9 +2248,9 @@
 
       area.innerHTML = `
         <b style="font-size:14px; display:block; margin-bottom:10px;">نتائج البحث الشامل عن: "${q}"</b>
-        ${matchItems.map(i => `<div class="card" style="${getCardStyle(i.cardColor, i.textColor)}" onclick="openOperationMenu('item', ${i.id})"><b class="clickable-name" onclick="event.stopPropagation(); openItemModal(${i.id})">صنف: ${i.name}</b><br><span style="color:var(--item-price-color); font-size:12px;">السعر: ${i.price} د.ع</span></div>`).join('')}
-        ${matchDebts.map(d => `<div class="card" style="${getCardStyle(d.cardColor, d.textColor)}" onclick="openOperationMenu('debt', ${d.id})"><b class="clickable-name" onclick="event.stopPropagation(); openDebtDetail(${d.id})">مدين: ${d.name}</b><br><span style="color:#b45309; font-size:12px;">المتبقي: ${d.amount.toLocaleString()} د.ع</span></div>`).join('')}
-        ${matchRents.map(r => `<div class="card" style="${getCardStyle(r.cardColor, r.textColor)}" onclick="openOperationMenu('rent', ${r.id})"><div class="rent-big-name clickable-name" onclick="event.stopPropagation(); openRentDetailModal(${r.id})">${r.customer}</div><div class="rent-small-equip">المعدات: ${r.equipName} | الحالة: ${r.status === 'active' ? 'نشط' : 'منتهي (مستلم)'}</div>${r.status === 'returned' ? `<div class="rent-dates-inline">أخذ: ${r.startDate} | إرجاع: ${r.returnDate || ''}</div>` : ''}</div>`).join('')}
+        ${matchItems.map(i => `<div class="card" style="${getCardStyle(i.cardColor, i.textColor)}" onclick="openItemModal(${i.id})"><b class="clickable-name">صنف: ${i.name}</b><br><span style="color:var(--item-price-color); font-size:12px;">السعر: ${i.price} د.ع</span></div>`).join('')}
+        ${matchDebts.map(d => `<div class="card" style="${getCardStyle(d.cardColor, d.textColor)}" onclick="openDebtDetail(${d.id})"><b class="clickable-name">مدين: ${d.name}</b><br><span style="color:#b45309; font-size:12px;">المتبقي: ${d.amount.toLocaleString()} د.ع</span></div>`).join('')}
+        ${matchRents.map(r => `<div class="card" style="${getCardStyle(r.cardColor, r.textColor)}" onclick="openRentDetailModal(${r.id})"><div class="rent-big-name">${r.customer}</div><div class="rent-small-equip">المعدات: ${r.equipName} | الحالة: ${r.status === 'active' ? 'نشط' : 'منتهي (مستلم)'}</div>${r.status === 'returned' ? `<div class="rent-dates-inline">أخذ: ${r.startDate} | إرجاع: ${r.returnDate || ''}</div>` : ''}</div>`).join('')}
         ${matchItems.length === 0 && matchDebts.length === 0 && matchRents.length === 0 ? '<p style="text-align:center; color:#6b7280; padding:20px;">لا توجد نتائج مطابقة.</p>' : ''}
       `;
       return;
@@ -2235,7 +2268,7 @@
             </div>
           `}
         </div>
-        ${state.items.map(i => `<div class="card" onclick="openOperationMenu('item', ${i.id})" style="${getCardStyle(i.cardColor, i.textColor)} display:flex; justify-content:space-between; align-items:center;"><div><b class="clickable-name" onclick="event.stopPropagation(); openItemModal(${i.id})">${i.name}</b><br><span style="font-size:12px; color:var(--item-price-color);">السعر: ${i.price.toLocaleString()} د.ع</span></div><button class="btn btn-blue" onclick="event.stopPropagation();addToCart(${i.id})">+ إضافة</button></div>`).join('')}
+        ${state.items.map(i => `<div class="card" onclick="openItemModal(${i.id})" style="${getCardStyle(i.cardColor, i.textColor)} display:flex; justify-content:space-between; align-items:center;"><div><b class="clickable-name">${i.name}</b><br><span style="font-size:12px; color:var(--item-price-color);">السعر: ${i.price.toLocaleString()} د.ع</span></div><button class="btn btn-blue" onclick="event.stopPropagation();addToCart(${i.id})">+ إضافة</button></div>`).join('')}
       `;
     } 
     else if (currentTab === 'store') {
@@ -2256,9 +2289,9 @@
           `).join('')}
         </div>
         ${filtered.map(i => `
-          <div class="card" onclick="openOperationMenu('item', ${i.id})" style="${getCardStyle(i.cardColor, i.textColor)} display:flex; justify-content:space-between; align-items:center;">
+          <div class="card" onclick="openItemModal(${i.id})" style="${getCardStyle(i.cardColor, i.textColor)} display:flex; justify-content:space-between; align-items:center;">
             <div>
-              <b class="clickable-name" style="font-size:15px;" onclick="event.stopPropagation(); openItemModal(${i.id})">${i.name}</b>
+              <b class="clickable-name" style="font-size:15px;">${i.name}</b>
               <div style="font-size:12px; opacity:0.8;">القسم: ${i.section} | الكمية: ${i.qty}${i.photo ? ' | 🖼️ مرفق صورة' : ''}</div>
             </div>
             <div style="color:var(--item-price-color); font-weight:bold; font-size:15px;">${i.price.toLocaleString()} د.ع</div>
@@ -2292,9 +2325,9 @@
         </div>
 
         ${state.debts.map(d => `
-          <div class="card" onclick="openOperationMenu('debt', ${d.id})" style="${getCardStyle(d.cardColor, d.textColor)} display:flex; justify-content:space-between; align-items:center;">
+          <div class="card" onclick="openDebtDetail(${d.id})" style="${getCardStyle(d.cardColor, d.textColor)} display:flex; justify-content:space-between; align-items:center;">
             <div>
-              <b class="clickable-name" style="font-size:15px;" onclick="event.stopPropagation(); openDebtDetail(${d.id})">${d.name}</b><br>
+              <b class="clickable-name" style="font-size:15px;">${d.name}</b><br>
               <span style="font-size:11px; opacity:0.8;">📞 ${d.phone}${d.photo ? ' | 🖼️ مرفق صورة' : ''}</span>
             </div>
             <div style="font-weight:bold; color:var(--price-color); font-size:16px;">${d.amount.toLocaleString()} د.ع</div>
