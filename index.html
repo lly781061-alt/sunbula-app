@@ -539,6 +539,31 @@
   const DEFAULT_DRIVE_EMAIL = 'lly781061@gmail.com';
   const SYNC_TS_KEY = 'sunbula_cloud_updated_at';
 
+  const SAMPLE_SHEET_DEBTS_TEXT = [
+    "2023-01-26\tعليه\t14,310\tالمحل",
+    "2026-10-27\tعليه\t3,300\tمحمد نوري",
+    "2026-08-17\tعليه\t1,536\tكاظم فلاح",
+    "2026-10-31\tعليه\t1,432.25\tصادق ابو جعفر اخو قاسم",
+    "2026-11-06\tعليه\t1,200\tابو زيدون",
+    "2026-11-10\tعليه\t1,107.25\tجاسم العميري",
+    "2026-11-12\tعليه\t1,083\tحمزه صادق",
+    "2024-11-14\tعليه\t998\tعباس طارق2",
+    "2024-11-24\tعليه\t986.5\tمحمد جواد",
+    "2024-10-30\tعليه\t922.5\tعباس طارق",
+    "2026-05-13\tعليه\t862.25\tابو حاتم خاصات اله",
+    "2026-11-21\tعليه\t841.5\tباسم العميري",
+    "2026-11-16\tعليه\t834.25\tفؤاد حمد",
+    "2026-11-15\tعليه\t791.5\tقاسم بركه",
+    "2024-03-27\tعليه\t679.5\tماهر مطلك",
+    "2026-11-21\tعليه\t621\tهاشم العميري",
+    "2026-11-05\tعليه\t600.5\tحسين عليوي",
+    "2025-09-02\tعليه\t593.5\tعباس زهير مرهون",
+    "2022-11-14\tعليه\t564\tسيف كريم",
+    "2026-08-17\tعليه\t558\tعلي صادق",
+    "2026-07-18\tعليه\t555.5\tعلي احمد العلي",
+    "2025-12-07\tعليه\t550.75\tامير سالم جاعد"
+  ].join("\n");
+
   function setupAppIdentity() {
     try {
       const iconCanvas = document.createElement('canvas');
@@ -598,7 +623,7 @@
     } catch (_) {}
   }
 
-  let state = JSON.parse(localStorage.getItem('sunbula_db_v31')) || JSON.parse(localStorage.getItem('sunbula_db_v30')) || JSON.parse(localStorage.getItem('sunbula_db_v29')) || {
+  let state = JSON.parse(localStorage.getItem('sunbula_db_v32')) || JSON.parse(localStorage.getItem('sunbula_db_v31')) || JSON.parse(localStorage.getItem('sunbula_db_v30')) || {
     storeName: 'محل الكهربائيات والإنشائيات - السنبلة',
     userEmail: DEFAULT_DRIVE_EMAIL,
     emailBackups: {},
@@ -685,7 +710,9 @@
   function parseNumberSafe(val) {
     if (typeof val === 'number') return isFinite(val) ? val : 0;
     if (!val) return 0;
-    const cleaned = String(val).replace(/[٬،,\sد.ع]/g, '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    const cleaned = String(val)
+      .replace(/[٬،,\sد.ع]/g, '')
+      .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
     const num = parseFloat(cleaned);
     return isFinite(num) ? num : 0;
   }
@@ -699,20 +726,19 @@
       const name = String(r.name || '').trim();
       const amount = parseNumberSafe(r.amount);
       const phone = String(r.phone || 'لا يوجد').trim() || 'لا يوجد';
-      const note = String(r.note || 'منقول من نسخة سابقة').trim();
+      const entryDate = String(r.date || nowStr).trim() || nowStr;
+      const accountType = String(r.accountType || '').trim();
+      const note = String(r.note || (accountType ? `منقول (${accountType}) - تاريخ: ${entryDate}` : `منقول من الجدول - تاريخ: ${entryDate}`)).trim();
       if (!name) return;
 
       const existing = state.debts.find(d => d.name.trim() === name);
       if (existing) {
         existing.amount = amount;
-        if (phone !== 'لا يوجد' && (!existing.phone || existing.phone === 'لا يوجد')) {
-          existing.phone = phone;
-        }
         existing.history = existing.history || [];
         existing.history.unshift({
-          type: 'تحديث من نسخة سابقة',
+          type: 'منقول من الجدول',
           amount,
-          date: nowStr,
+          date: entryDate,
           note,
           bgColor: '#eff6ff'
         });
@@ -726,9 +752,9 @@
           cardColor: '#ffffff',
           textColor: '#111827',
           history: [{
-            type: 'منقول من نسخة سابقة',
+            type: 'منقول من الجدول',
             amount,
-            date: nowStr,
+            date: entryDate,
             note,
             bgColor: '#ffffff'
           }]
@@ -738,7 +764,7 @@
     });
 
     if (addedOrUpdated > 0) {
-      logAction('الديون', `استيراد/تحويل ${addedOrUpdated} سجل دين من نسخة سابقة`);
+      logAction('الديون', `استيراد/تحويل ${addedOrUpdated} سجل دين من الجدول`);
       save();
     }
     return addedOrUpdated;
@@ -748,15 +774,15 @@
     const text = String(rawText || '').trim();
     if (!text) return [];
 
-    // محاولة قراءة JSON أولاً
     try {
       const json = JSON.parse(text);
       if (Array.isArray(json)) {
         return json.map(item => ({
-          name: item.name || item.customer || item.الاسم || item.اسم || '',
-          amount: item.amount ?? item.balance ?? item.المبلغ ?? item.الرصيد ?? 0,
-          phone: item.phone || item.الهاتف || 'لا يوجد',
-          note: item.note || item.ملاحظات || 'منقول من نسخة سابقة'
+          name: item.name || item.customer || item['اسم الحساب'] || item.الاسم || item.اسم || '',
+          amount: item.amount ?? item.balance ?? item['المبلغ'] ?? item.المبلغ ?? item.الرصيد ?? 0,
+          date: item.date || item['التاريخ'] || '',
+          accountType: item.accountType || item['نوع الحساب'] || '',
+          phone: item.phone || item.الهاتف || 'لا يوجد'
         })).filter(x => x.name);
       }
       if (json && Array.isArray(json.debts)) {
@@ -764,7 +790,6 @@
       }
     } catch (_) {}
 
-    // محاولة قراءة XML/Spreadsheet بسيط
     if (text.includes('<Row') || text.includes('<row')) {
       try {
         const doc = new DOMParser().parseFromString(text, 'text/xml');
@@ -773,10 +798,12 @@
         rows.forEach(row => {
           const cells = Array.from(row.querySelectorAll('Cell, cell, Data, data, c, v')).map(c => c.textContent.trim()).filter(Boolean);
           if (cells.length >= 2) {
-            const numCell = cells.find(c => !isNaN(parseNumberSafe(c)) && /[0-9٠-٩]/.test(c));
-            const nameCell = cells.find(c => c !== numCell && isNaN(Number(c)));
-            if (nameCell) {
-              parsedXml.push({ name: nameCell, amount: numCell ? parseNumberSafe(numCell) : 0 });
+            const dateVal = cells.find(c => /^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(c)) || '';
+            const typeVal = cells.find(c => /^(عليه|له|مدين|دائن)$/i.test(c)) || '';
+            const numVal = cells.find(c => c !== dateVal && /^[+-]?[0-9٠-٩٬،.,]+$/.test(c.replace(/\s+/g, '')));
+            const nameVal = cells.find(c => c !== dateVal && c !== typeVal && c !== numVal && isNaN(Number(c.replace(/[,٬]/g, ''))));
+            if (nameVal) {
+              parsedXml.push({ name: nameVal, amount: numVal ? parseNumberSafe(numVal) : 0, date: dateVal, accountType: typeVal });
             }
           }
         });
@@ -784,25 +811,46 @@
       } catch (_) {}
     }
 
-    // قراءة سطر سطر (CSV / Tab / مسافات / شرطات)
     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     const results = [];
     for (const line of lines) {
-      if (/^(الاسم|اسم العميل|الرصيد|المبلغ|name|amount)/i.test(line)) continue;
-      let parts = line.split(/[\t,|;]+/).map(s => s.trim()).filter(Boolean);
-      if (parts.length < 2) {
-        const match = line.match(/^(.+?)\s+([-+]?[0-9٠-٩]+(?:[.,٬][0-9٠-٩]+)?)$/);
-        if (match) parts = [match[1].trim(), match[2].trim()];
-      }
-      if (parts.length >= 2) {
-        const amountPart = parts.find(p => /^[-+]?[0-9٠-٩]+(?:[.,٬][0-9٠-٩]+)?$/.test(p.replace(/\s+/g, ''))) || parts[parts.length - 1];
-        const namePart = parts.filter(p => p !== amountPart).join(' ').trim();
-        if (namePart) {
-          results.push({ name: namePart, amount: parseNumberSafe(amountPart) });
+      if (/^(التاريخ|نوع الحساب|المبلغ|اسم الحساب|الاسم|إجمالي المبالغ)/i.test(line)) continue;
+
+      const parts = line.split(/[\t,|;]+/).map(s => s.trim()).filter(Boolean);
+      if (parts.length >= 3) {
+        const dateVal = parts.find(p => /^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(p)) || '';
+        const typeVal = parts.find(p => /^(عليه|له|مدين|دائن)$/i.test(p)) || '';
+        const numCandidates = parts.filter(p => p !== dateVal && p !== typeVal && /^[+-]?[0-9٠-٩٬،.,]+$/.test(p.replace(/\s+/g, '')));
+        const amountVal = numCandidates.length ? numCandidates[0] : '';
+        const nameCandidates = parts.filter(p => p !== dateVal && p !== typeVal && p !== amountVal);
+        const nameVal = nameCandidates.join(' ').trim();
+        if (nameVal) {
+          results.push({
+            name: nameVal,
+            amount: parseNumberSafe(amountVal),
+            date: dateVal,
+            accountType: typeVal
+          });
+          continue;
         }
+      }
+
+      const match = line.match(/^(.+?)\s+([-+]?[0-9٠-٩٬،.,]+)$/);
+      if (match) {
+        results.push({
+          name: match[1].trim(),
+          amount: parseNumberSafe(match[2])
+        });
       }
     }
     return results;
+  }
+
+  function fillSampleSheetDebts() {
+    const area = document.getElementById('legacyDebtsTextInput');
+    if (area) {
+      area.value = SAMPLE_SHEET_DEBTS_TEXT;
+    }
   }
 
   function importLegacyDebtsFromText() {
@@ -1176,7 +1224,7 @@
       if (state.liveSync && state.liveSync.enabled) {
         state.liveSync.lastSyncDateTime = nowStr;
       }
-      localStorage.setItem('sunbula_db_v31', JSON.stringify(state));
+      localStorage.setItem('sunbula_db_v32', JSON.stringify(state));
       applyTheme();
 
       if (triggerRemotePush && !isApplyingRemote && state.liveSync && state.liveSync.enabled && state.liveSync.syncUrl && state.liveSync.syncUrl.trim()) {
@@ -1215,10 +1263,10 @@
         body: JSON.stringify(payload)
       });
       state.liveSync.lastSyncStatus = 'تمت المزامنة تلقائياً';
-      localStorage.setItem('sunbula_db_v31', JSON.stringify(state));
+      localStorage.setItem('sunbula_db_v32', JSON.stringify(state));
     } catch (_) {
       state.liveSync.lastSyncStatus = 'محلي (بانتظار الاتصال/رابط)';
-      localStorage.setItem('sunbula_db_v31', JSON.stringify(state));
+      localStorage.setItem('sunbula_db_v32', JSON.stringify(state));
     }
   }
 
@@ -1254,7 +1302,7 @@
           if (remoteTs > 0) setLocalSyncTs(remoteTs);
           state.liveSync.lastSyncDateTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
           state.liveSync.lastSyncStatus = 'تم السحب من السحابة';
-          localStorage.setItem('sunbula_db_v31', JSON.stringify(state));
+          localStorage.setItem('sunbula_db_v32', JSON.stringify(state));
           applyTheme();
           if (!silent) {
             alert('تمت مزامنة البيانات من السحابة بنجاح!');
@@ -2536,16 +2584,19 @@
 
       area.innerHTML = `
         <div class="card" style="cursor:default;">
-          <h3 style="font-size:15px; margin-bottom:12px;">📥 نقل سجل الديون من تطبيق الحسابات / درايف</h3>
+          <h3 style="font-size:15px; margin-bottom:12px;">📥 نقل سجل الديون من الجدول / درايف</h3>
           <div class="form-group">
             <label>استيراد ملف (CSV / TXT / JSON / XML) من الهاتف أو درايف</label>
             <button type="button" class="btn btn-teal" style="width:100%;" onclick="document.getElementById('legacyDebtsFileInput').click()">📂 اختيار ملف سجل الديون</button>
             <input type="file" id="legacyDebtsFileInput" accept=".csv,.txt,.json,.xml,.tsv,text/*" style="display:none;" onchange="importLegacyDebtsFromFile(this)">
           </div>
           <div class="form-group">
-            <label>أو الصق أسماء العملاء والمبالغ هنا (كل عميل ومبلغه في سطر):</label>
-            <textarea id="legacyDebtsTextInput" class="form-control" rows="4" placeholder="مثال:&#10;رعد جاعد 118&#10;مصطفى ابو ريحانه 12&#10;باسم العميري 841.5"></textarea>
-            <button type="button" class="btn btn-blue" style="width:100%; margin-top:6px;" onclick="importLegacyDebtsFromText()">🔄 تحويل وإضافة إلى سجل الديون</button>
+            <label>أو الصق أسطر الجدول (التاريخ / نوع الحساب / المبلغ / اسم الحساب):</label>
+            <textarea id="legacyDebtsTextInput" class="form-control" rows="4" placeholder="مثال:&#10;2023-01-26  عليه  14,310  المحل&#10;2026-10-27  عليه  3,300  محمد نوري"></textarea>
+            <div style="display:flex; gap:8px; margin-top:6px;">
+              <button type="button" class="btn btn-gray" style="flex:1; font-size:12px;" onclick="fillSampleSheetDebts()">📋 إدراج بيانات الصورة</button>
+              <button type="button" class="btn btn-blue" style="flex:1; font-size:12px;" onclick="importLegacyDebtsFromText()">🔄 تحويل إلى الديون</button>
+            </div>
             <div id="legacyImportStatus" style="font-size:12px; color:#059669; font-weight:bold; margin-top:6px;"></div>
           </div>
 
