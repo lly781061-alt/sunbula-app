@@ -20,7 +20,7 @@
     --price-color: #b45309;
     --app-font-family: system-ui, -apple-system, sans-serif;
     --app-font-size: 14px;
-
+    
     --item-name-color: #1f2937;
     --item-price-color: #b45309;
     --debt-name-color: #111827;
@@ -28,13 +28,13 @@
     --rent-name-color: #111827;
     --rent-price-color: #0d9488;
     --rent-date-color: #6b7280;
-
+    
     --received-color: #10b981;
     --unreceived-color: #fef08a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--app-font-family); -webkit-tap-highlight-color: transparent; }
   body { background-color: #F4F6F8; color: var(--text-color); font-size: var(--app-font-size); padding-bottom: 84px; }
-
+  
   .header { background: var(--primary-gradient); color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
   .header h1 { font-size: calc(var(--app-font-size) + 2px); font-weight: bold; }
   .btn-icon { background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -51,7 +51,7 @@
   .container { padding: 0 12px; max-width: 600px; margin: 0 auto; }
   .card { background: white; border-radius: 16px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.08s ease; }
   .card:active { transform: scale(0.99); }
-
+  
   .sections-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
   .sec-chip { background: white; padding: 6px 14px; border-radius: 12px; font-size: calc(var(--app-font-size) - 2px); font-weight: bold; border: 1px solid #d1d5db; white-space: nowrap; cursor: pointer; color: #374151; }
   .sec-chip.active { background: var(--main-color); color: white; border-color: var(--main-color); }
@@ -64,12 +64,11 @@
   .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
   .modal.open { display: flex; }
   .modal-box { background: white; width: 100%; max-width: 430px; border-radius: 20px; padding: 18px; max-height: 90vh; overflow-y: auto; }
-  .modal-compact-box { background: white; width: 100%; max-width: 370px; border-radius: 18px; padding: 14px; max-height: 85vh; overflow-y: auto; box-shadow: 0 12px 28px rgba(0,0,0,0.22); }
   .modal-title { font-size: calc(var(--app-font-size) + 2px); font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
   .form-group { margin-bottom: 10px; }
   .form-group label { display: block; font-size: calc(var(--app-font-size) - 2px); color: #4b5563; margin-bottom: 4px; font-weight: bold; }
   .form-control { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 12px; font-size: var(--app-font-size); outline: none; background: #fff; }
-
+  
   .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
   .btn { border: none; padding: 8px 14px; border-radius: 12px; font-size: calc(var(--app-font-size) - 1px); font-weight: bold; cursor: pointer; }
   .btn-blue { background: #2563eb; color: white; }
@@ -78,20 +77,59 @@
   .btn-gray { background: #e5e7eb; color: #374151; }
   .btn-teal { background: #0d9488; color: white; }
   .btn-amber { background: #d97706; color: white; }
-
+  
   .sum-box { background: #2563eb; color: white; padding: 16px; border-radius: 18px; margin-bottom: 12px; }
   .history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-radius: 10px; border-bottom: 1px solid #f3f4f6; margin-bottom: 4px; font-size: calc(var(--app-font-size) - 2px); cursor: pointer; background: #ffffff; }
+  .badge-email { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 8px 10px; border-radius: 10px; font-size: 12px; margin-bottom: 8px; }
+  .status-banner { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 8px 10px; border-radius: 10px; font-size: 12px; margin-top: 8px; font-weight: bold; }
+  .auto-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; margin-top: 8px; }
+  .switch-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: bold; margin-bottom: 8px; }
   .photo-preview { width: 100%; max-height: 160px; object-fit: cover; border-radius: 10px; margin-top: 6px; border: 1px solid #e5e7eb; }
+  .backup-op-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .op-menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+  .op-action-btn { border: none; border-radius: 14px; padding: 12px 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .inline-confirm-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 10px; margin-bottom: 10px; }
+  .swatch-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .swatch-btn { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #9ca3af; cursor: pointer; }
+  .pdf-voucher-card { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 14px; padding: 14px; font-size: 13px; color: #111827; }
+  .pdf-voucher-header { border-bottom: 2px solid #0B2A4A; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .pdf-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #e5e7eb; font-size: 12px; }
+  #cameraVideo { width: 100%; max-height: 230px; border-radius: 12px; background: #000; object-fit: cover; }
 
-  /* تنسيقات قسم الإيجار وإدارة المعدات والاستلام المصغّر */
-  .rent-top-toolbar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-  .rent-equip-btn { background: #2563eb; color: #fff; border: none; border-radius: 14px; padding: 10px 14px; font-size: calc(var(--app-font-size) - 1px); font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(37,99,235,0.2); }
-  .rent-history-btn { background: #e5e7eb; color: #1f2937; border: none; border-radius: 14px; padding: 10px 12px; font-size: calc(var(--app-font-size) - 1px); font-weight: bold; cursor: pointer; }
-  .equip-drawer { display: none; background: #ffffff; border: 2px solid #2563eb; border-radius: 16px; padding: 12px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(37,99,235,0.12); }
-  .equip-drawer.open { display: block; }
-  .equip-row-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 4px; border-bottom: 1px solid #f1f5f9; flex-wrap: wrap; }
-  .receive-summary-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px; font-size: 12.5px; line-height: 1.7; margin-bottom: 10px; }
-  .receive-total-pill { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 10px; padding: 8px 10px; font-weight: 800; font-size: 13px; text-align: center; margin-bottom: 10px; }
+  .clickable-name { cursor: pointer; display: inline-block; }
+  .rent-big-name { font-size: calc(var(--app-font-size) + 4px); font-weight: 800; line-height: 1.25; }
+  .rent-small-equip { font-size: calc(var(--app-font-size) - 2px); opacity: 0.85; margin-top: 3px; }
+  .rent-dates-inline { font-size: calc(var(--app-font-size) - 2px); font-weight: bold; margin-top: 5px; padding: 4px 8px; border-radius: 8px; background: rgba(13, 148, 136, 0.1); display: inline-block; }
+  .draft-equip-row { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 7px 10px; margin-bottom: 6px; font-size: 12px; }
+  .detail-toolbar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+
+  /* أنماط إدارة المعدات المطابقة للصورة */
+  .equip-top-bar { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; }
+  .equip-trigger-btn { background: #2563eb; color: #ffffff; border: none; border-radius: 16px; padding: 10px 16px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .equip-history-btn { background: #f1f5f9; color: #1f2937; border: none; border-radius: 16px; padding: 10px 16px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .equip-manager-box { display: none; background: #ffffff; border: 2px solid #2563eb; border-radius: 20px; padding: 16px; margin-bottom: 14px; }
+  .equip-manager-box.open { display: block; }
+  .equip-mgr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .equip-mgr-title { color: #1d4ed8; font-size: 15px; font-weight: 800; }
+  .equip-hide-btn { background: #f1f5f9; color: #111827; border: none; border-radius: 12px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .equip-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .equip-input { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 14px; font-size: 13px; background: #ffffff; color: #111827; outline: none; }
+  .equip-add-btn { width: 100%; background: #16a34a; color: #ffffff; border: none; border-radius: 14px; padding: 11px; font-size: 14px; font-weight: 800; cursor: pointer; margin-bottom: 14px; }
+  .equip-item-card { padding: 14px 4px; border-bottom: 1px solid #e5e7eb; }
+  .equip-item-card:last-child { border-bottom: none; }
+  .equip-item-name { font-size: 15px; font-weight: 800; color: #111827; margin-bottom: 4px; }
+  .equip-item-meta { font-size: 13px; color: #4b5563; margin-bottom: 10px; }
+  .equip-item-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+  .equip-rate-box { width: 110px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 12px; font-size: 14px; text-align: center; color: #111827; background: #ffffff; }
+  .equip-del-btn { background: #dc2626; color: #ffffff; border: none; border-radius: 16px; padding: 8px 18px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+  @media print {
+    body * { visibility: hidden !important; }
+    #pdfVoucherModal, #pdfVoucherModal * { visibility: visible !important; }
+    #pdfVoucherModal { position: static !important; background: white !important; padding: 0 !important; display: block !important; }
+    .modal-box { max-width: 100% !important; box-shadow: none !important; border: none !important; max-height: none !important; }
+    .no-print { display: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -121,15 +159,131 @@
     <button class="nav-item" id="nav-reports" onclick="switchTab('reports')"><span class="nav-icon">📊</span><span>الإعدادات</span></button>
   </div>
 
-  <!-- نافذة إضافة / تعديل صنف -->
+  <!-- نافذة سند PDF للمشاركة والطباعة -->
+  <div class="modal" id="pdfVoucherModal">
+    <div class="modal-box">
+      <div class="modal-title no-print">
+        <span id="pdfModalTitle">📄 سند PDF</span>
+        <button class="btn btn-gray" style="padding:4px 8px; font-size:11px;" onclick="closeModal('pdfVoucherModal')">إغلاق</button>
+      </div>
+      <div id="pdfVoucherBody" class="pdf-voucher-card"></div>
+      <div class="modal-actions no-print">
+        <button type="button" class="btn btn-teal" style="flex:1;" onclick="shareCurrentVoucherText()">📤 مشاركة</button>
+        <button type="button" class="btn btn-blue" style="flex:1;" onclick="window.print()">🖨️ حفظ / طباعة PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة خيارات العملية -->
+  <div class="modal" id="operationActionsModal">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span id="opModalTitle">خيارات العملية</span>
+        <button class="btn btn-gray" style="padding:4px 8px; font-size:11px;" onclick="closeModal('operationActionsModal')">إغلاق</button>
+      </div>
+      <div id="opModalSubtitle" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px; font-size:12px; color:#374151;"></div>
+
+      <div class="op-menu-grid">
+        <button type="button" class="op-action-btn" style="background:#dbeafe; color:#1e40af;" onclick="triggerOperationEdit()">
+          <span style="font-size:18px;">✏️</span>
+          <span>تعديل</span>
+        </button>
+        <button type="button" class="op-action-btn" style="background:#fef3c7; color:#92400e;" onclick="toggleOperationColorPicker()">
+          <span style="font-size:18px;">🎨</span>
+          <span>تغيير اللون</span>
+        </button>
+        <button type="button" class="op-action-btn" style="background:#fee2e2; color:#991b1b;" onclick="toggleInlineDeleteConfirm()">
+          <span style="font-size:18px;">🗑️</span>
+          <span>حذف</span>
+        </button>
+      </div>
+
+      <div id="opInlineDeleteConfirm" class="inline-confirm-box" style="display:none;">
+        <div style="font-size:12px; font-weight:bold; color:#991b1b; margin-bottom:8px;">هل تؤكد حذف هذه العملية نهائياً؟</div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-red" style="flex:1;" onclick="confirmInlineOperationDelete()">نعم، احذف الآن</button>
+          <button type="button" class="btn btn-gray" style="flex:1;" onclick="cancelInlineDeleteConfirm()">إلغاء الحذف</button>
+        </div>
+      </div>
+
+      <div id="opColorPickerPanel" style="display:none; background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px; padding:12px; margin-bottom:10px;">
+        <label style="display:block; font-size:12px; font-weight:bold; margin-bottom:4px;">لون خلفية البطاقة:</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="color" id="opBgColorInput" class="form-control" style="height:38px; width:64px; padding:2px;" value="#ffffff">
+          <div class="swatch-row" style="margin-top:0;">
+            <button type="button" class="swatch-btn" style="background:#ffffff;" title="أبيض" onclick="setBgPreset('#ffffff')"></button>
+            <button type="button" class="swatch-btn" style="background:#eff6ff;" title="أزرق فاتح" onclick="setBgPreset('#eff6ff')"></button>
+            <button type="button" class="swatch-btn" style="background:#ecfdf5;" title="أخضر فاتح" onclick="setBgPreset('#ecfdf5')"></button>
+            <button type="button" class="swatch-btn" style="background:#fefce8;" title="أصفر فاتح" onclick="setBgPreset('#fefce8')"></button>
+            <button type="button" class="swatch-btn" style="background:#fdf2f8;" title="وردي فاتح" onclick="setBgPreset('#fdf2f8')"></button>
+          </div>
+        </div>
+
+        <label style="display:block; font-size:12px; font-weight:bold; margin:10px 0 4px 0;">لون خط النص داخل البطاقة:</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="color" id="opTextColorInput" class="form-control" style="height:38px; width:64px; padding:2px;" value="#111827">
+          <div class="swatch-row" style="margin-top:0;">
+            <button type="button" class="swatch-btn" style="background:#111827;" title="أسود" onclick="setTextPreset('#111827')"></button>
+            <button type="button" class="swatch-btn" style="background:#1e40af;" title="أزرق داكن" onclick="setTextPreset('#1e40af')"></button>
+            <button type="button" class="swatch-btn" style="background:#065f46;" title="أخضر داكن" onclick="setTextPreset('#065f46')"></button>
+            <button type="button" class="swatch-btn" style="background:#92400e;" title="بني/عنبري" onclick="setTextPreset('#92400e')"></button>
+            <button type="button" class="swatch-btn" style="background:#991b1b;" title="أحمر داكن" onclick="setTextPreset('#991b1b')"></button>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-green" style="width:100%; margin-top:12px;" onclick="applyOperationColors()">تطبيق لون الخلفية والنص</button>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-gray" onclick="closeModal('operationActionsModal')">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة عرض كل عمليات الحفظ في درايف للاستعادة المباشرة -->
+  <div class="modal" id="driveBackupsListModal">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span>☁️ عمليات الحفظ في درايف</span>
+        <button class="btn btn-gray" style="padding:4px 8px; font-size:11px;" onclick="closeModal('driveBackupsListModal')">إغلاق</button>
+      </div>
+      <p style="font-size:12px; color:#4b5563; margin-bottom:10px;">اختر عملية حفظ من درايف لاستعادتها فوراً:</p>
+      <div id="driveBackupsListContent" style="max-height:340px; overflow-y:auto;"></div>
+      <div class="modal-actions">
+        <button class="btn btn-gray" onclick="closeModal('driveBackupsListModal')">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- سجل العمليات العام -->
+  <div class="modal" id="globalLogModal">
+    <div class="modal-box">
+      <div class="modal-title"><span>📜 سجل عمليات القسم</span> <button class="btn btn-gray" style="padding:4px 8px; font-size:11px;" onclick="closeModal('globalLogModal')">إغلاق</button></div>
+      <div id="globalLogContent" style="max-height:300px; overflow-y:auto; font-size:12px;"></div>
+    </div>
+  </div>
+
+  <!-- نافذة تعديل / إضافة صنف في المخزن -->
   <div class="modal" id="itemModal">
     <div class="modal-box">
-      <div class="modal-title"><span>إضافة / تعديل صنف</span><button class="btn btn-gray" style="padding:4px 8px;font-size:11px;" onclick="closeModal('itemModal')">إغلاق</button></div>
+      <div class="modal-title" id="itemModalTitle">إضافة صنف جديد</div>
       <input type="hidden" id="iId">
       <div class="form-group"><label>اسم الصنف</label><input type="text" id="iName" class="form-control" placeholder="مثل: مصباح"></div>
+      <div class="form-group"><label>القسم</label><select id="iSection" class="form-control"></select></div>
       <div class="form-group"><label>السعر (د.ع)</label><input type="number" id="iPrice" class="form-control" placeholder="5000"></div>
       <div class="form-group"><label>الكمية المتوفرة</label><input type="number" id="iQty" class="form-control" value="10"></div>
+      <div class="form-group">
+        <label>صورة الصنف (الكاميرا أو المعرض)</label>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-blue" style="flex:1;" onclick="document.getElementById('iCameraInput').click()">📷 الكاميرا</button>
+          <button type="button" class="btn btn-gray" style="flex:1;" onclick="document.getElementById('iGalleryInput').click()">🖼️ المعرض</button>
+        </div>
+        <input type="file" id="iCameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleGenericPhoto(this, 'item')">
+        <input type="file" id="iGalleryInput" accept="image/*" style="display:none;" onchange="handleGenericPhoto(this, 'item')">
+        <img id="iPhotoPreview" class="photo-preview" style="display:none;" alt="معاينة صورة الصنف">
+      </div>
       <div class="modal-actions">
+        <button class="btn btn-red" id="iDelBtn" style="display:none; margin-left:auto;" onclick="deleteItemAction()">حذف</button>
         <button class="btn btn-gray" onclick="closeModal('itemModal')">إلغاء</button>
         <button class="btn btn-green" onclick="saveItem()">حفظ</button>
       </div>
@@ -139,543 +293,182 @@
   <!-- نافذة تسجيل دين جديد -->
   <div class="modal" id="debtModal">
     <div class="modal-box">
-      <div class="modal-title"><span>تسجيل دين جديد</span><button class="btn btn-gray" style="padding:4px 8px;font-size:11px;" onclick="closeModal('debtModal')">إغلاق</button></div>
+      <div class="modal-title">تسجيل دين جديد</div>
       <div class="form-group"><label>اسم العميل</label><input type="text" id="dName" class="form-control" placeholder="اسم الزبون"></div>
       <div class="form-group"><label>المبلغ (د.ع)</label><input type="number" id="dAmount" class="form-control" placeholder="0"></div>
       <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="dPhone" class="form-control" placeholder="077..."></div>
       <div class="form-group"><label>ملاحظات</label><textarea id="dNote" class="form-control" rows="2" placeholder="تفاصيل..."></textarea></div>
+      <div class="form-group">
+        <label>صورة (الكاميرا أو المعرض)</label>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-blue" style="flex:1;" onclick="document.getElementById('dCameraInput').click()">📷 الكاميرا</button>
+          <button type="button" class="btn btn-gray" style="flex:1;" onclick="document.getElementById('dGalleryInput').click()">🖼️ المعرض</button>
+        </div>
+        <input type="file" id="dCameraInput" accept="image/*" capture="environment" style="display:none;">
+      </div>
       <div class="modal-actions">
         <button class="btn btn-gray" onclick="closeModal('debtModal')">إلغاء</button>
-        <button class="btn btn-blue" onclick="saveDebt()">حفظ الدين</button>
+        <button class="btn btn-blue" onclick="closeModal('debtModal')">حفظ</button>
       </div>
     </div>
   </div>
 
-  <!-- نافذة إيجار جديد / تعديل قيد إيجار -->
-  <div class="modal" id="rentModal">
-    <div class="modal-box">
-      <div class="modal-title"><span id="rentModalTitle">تسجيل إيجار جديد</span><button class="btn btn-gray" style="padding:4px 8px;font-size:11px;" onclick="closeModal('rentModal')">إغلاق</button></div>
-      <input type="hidden" id="rEditId">
-      <div class="form-group"><label>اسم المستأجر</label><input type="text" id="rTenant" class="form-control" placeholder="مثال: محمد صادق طعمه"></div>
-      <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="rPhone" class="form-control" placeholder="لا يوجد"></div>
-      <div class="form-group">
-        <label>المعدة</label>
-        <select id="rEquipSelect" class="form-control" onchange="onRentEquipChange()"></select>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-        <div class="form-group"><label>العدد</label><input type="number" id="rQty" class="form-control" min="1" value="1"></div>
-        <div class="form-group"><label>سعر الإيجار (د.ع/يوم)</label><input type="number" id="rDailyRate" class="form-control" min="0" value="0"></div>
-      </div>
-      <div class="form-group"><label>ملاحظات</label><input type="text" id="rNotes" class="form-control" placeholder="ملاحظات..."></div>
-      <div class="modal-actions">
-        <button class="btn btn-gray" onclick="closeModal('rentModal')">إلغاء</button>
-        <button class="btn btn-teal" onclick="saveRent()">حفظ الإيجار</button>
-      </div>
-    </div>
-  </div>
+  <script>
+    const EQUIP_STORAGE_KEY = "sunbula_equip_manage_v1";
+    let equipDrawerVisible = false;
 
-  <!-- نافذة تفاصيل الاستلام المصغّرة (ملخص سريع) -->
-  <div class="modal" id="receiveModal">
-    <div class="modal-compact-box">
-      <div class="modal-title" style="margin-bottom:8px;">
-        <span>📋 تفاصيل الاستلام (ملخص)</span>
-        <button class="btn btn-gray" style="padding:3px 8px;font-size:11px;" onclick="closeModal('receiveModal')">✕</button>
-      </div>
-      <div id="receiveSummaryBox" class="receive-summary-card"></div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-        <div class="form-group" style="margin-bottom:8px;">
-          <label>عدد الأيام</label>
-          <input type="number" id="recDays" class="form-control" style="padding:7px;" min="1" value="1" oninput="updateReceiveCalc()">
-        </div>
-        <div class="form-group" style="margin-bottom:8px;">
-          <label>السعر/يوم (د.ع)</label>
-          <input type="number" id="recRate" class="form-control" style="padding:7px;" min="0" oninput="updateReceiveCalc()">
-        </div>
-      </div>
-      <div id="recTotalBox" class="receive-total-pill">الإجمالي: 0 د.ع</div>
-      <div class="modal-actions" style="margin-top:6px;">
-        <button type="button" class="btn btn-green" style="flex:1;" onclick="confirmReceiveRent()">تأكيد الاستلام</button>
-        <button type="button" class="btn btn-gray" onclick="closeModal('receiveModal')">إلغاء</button>
-      </div>
-    </div>
-  </div>
+    let equipItems = JSON.parse(localStorage.getItem(EQUIP_STORAGE_KEY)) || [
+      { id: 1, name: "قفص سكلة", total: 40, assetPrice: 0, dailyRate: 1500 },
+      { id: 2, name: "دراب 4 متر", total: 20, assetPrice: 0, dailyRate: 1000 },
+      { id: 3, name: "دريل همر تكسير / تكشير", total: 12, assetPrice: 0, dailyRate: 10000 },
+      { id: 4, name: "كسار كبير", total: 8, assetPrice: 0, dailyRate: 20000 }
+    ];
 
-  <!-- نافذة سجل الإيجارات المنتهية -->
-  <div class="modal" id="rentHistoryModal">
-    <div class="modal-compact-box">
-      <div class="modal-title">
-        <span>📜 سجل الإيجارات المنتهية</span>
-        <button class="btn btn-gray" style="padding:3px 8px;font-size:11px;" onclick="closeModal('rentHistoryModal')">✕</button>
-      </div>
-      <div id="rentHistoryList"></div>
-    </div>
-  </div>
-
-<script>
-  const DB_KEY = "sunbula_app_data_v2";
-  let currentTab = "pos";
-  let equipmentDrawerOpen = false;
-  let activeReceiveId = null;
-
-  const defaultEquipments = [
-    { id: 1, name: "قفص سكلة", total: 40, assetPrice: 0, dailyRate: 1500 },
-    { id: 2, name: "دراب 4 متر", total: 20, assetPrice: 0, dailyRate: 1000 },
-    { id: 3, name: "دريل همر تكسير / تكشير", total: 12, assetPrice: 0, dailyRate: 10000 },
-    { id: 4, name: "كسار كبير", total: 8, assetPrice: 0, dailyRate: 20000 }
-  ];
-
-  const defaultRents = [
-    {
-      id: 101,
-      tenant: "محمد صادق طعمه",
-      phone: "لا يوجد",
-      eqId: 3,
-      eqName: "دريل همر تكسير / تكشير",
-      qty: 2,
-      dailyRate: 10000,
-      startDate: new Date().toISOString().slice(0, 10),
-      notes: "",
-      status: "active"
+    function saveEquipItems() {
+      localStorage.setItem(EQUIP_STORAGE_KEY, JSON.stringify(equipItems));
     }
-  ];
 
-  let state = JSON.parse(localStorage.getItem(DB_KEY)) || {
-    items: [
-      { id: 1, name: "مصباح LED 20W", price: 3500, qty: 25 },
-      { id: 2, name: "كيبل 2x4mm الفنار", price: 65000, qty: 12 }
-    ],
-    debts: [],
-    sales: [],
-    equipments: defaultEquipments,
-    rents: defaultRents
-  };
-
-  if (!Array.isArray(state.equipments) || !state.equipments.length) state.equipments = [...defaultEquipments];
-  if (!Array.isArray(state.rents)) state.rents = [...defaultRents];
-
-  function saveState() {
-    localStorage.setItem(DB_KEY, JSON.stringify(state));
-  }
-
-  function fmtIQD(n) {
-    return Number(n || 0).toLocaleString("en-US").replace(/,/g, ".") + " د.ع";
-  }
-
-  function todayISO() {
-    return new Date().toISOString().slice(0, 10);
-  }
-
-  function switchTab(tab) {
-    currentTab = tab;
-    document.querySelectorAll(".nav-item").forEach((el) => el.classList.remove("active"));
-    const navEl = document.getElementById("nav-" + tab);
-    if (navEl) navEl.classList.add("active");
-    render();
-  }
-
-  function openModal(id) {
-    document.getElementById(id).classList.add("open");
-  }
-
-  function closeModal(id) {
-    document.getElementById(id).classList.remove("open");
-  }
-
-  function openItemModal() {
-    document.getElementById("iId").value = "";
-    document.getElementById("iName").value = "";
-    document.getElementById("iPrice").value = "";
-    document.getElementById("iQty").value = 10;
-    openModal("itemModal");
-  }
-
-  function saveItem() {
-    const name = document.getElementById("iName").value.trim();
-    const price = parseFloat(document.getElementById("iPrice").value) || 0;
-    const qty = parseInt(document.getElementById("iQty").value, 10) || 0;
-    if (!name) return;
-    state.items.push({ id: Date.now(), name, price, qty });
-    saveState();
-    closeModal("itemModal");
-    render();
-  }
-
-  function openDebtModal() {
-    document.getElementById("dName").value = "";
-    document.getElementById("dAmount").value = "";
-    document.getElementById("dPhone").value = "";
-    document.getElementById("dNote").value = "";
-    openModal("debtModal");
-  }
-
-  function saveDebt() {
-    const name = document.getElementById("dName").value.trim();
-    const amount = parseFloat(document.getElementById("dAmount").value) || 0;
-    const phone = document.getElementById("dPhone").value.trim();
-    const note = document.getElementById("dNote").value.trim();
-    if (!name) return;
-    state.debts.push({ id: Date.now(), name, amount, phone, note, date: todayISO() });
-    saveState();
-    closeModal("debtModal");
-    render();
-  }
-
-  /* إدارة المعدات */
-  function toggleEquipmentDrawer() {
-    equipmentDrawerOpen = !equipmentDrawerOpen;
-    render();
-  }
-
-  function addEquipment() {
-    const name = document.getElementById("newEqName").value.trim();
-    const total = Math.max(0, parseInt(document.getElementById("newEqTotal").value, 10) || 0);
-    const assetPrice = Math.max(0, parseFloat(document.getElementById("newEqAssetPrice").value) || 0);
-    const dailyRate = Math.max(0, parseFloat(document.getElementById("newEqDailyRate").value) || 0);
-    if (!name) return;
-
-    state.equipments.push({ id: Date.now(), name, total, assetPrice, dailyRate });
-    saveState();
-    render();
-  }
-
-  function updateEquipmentPrice(eqId, newRate) {
-    const eq = state.equipments.find((e) => e.id === eqId);
-    if (!eq) return;
-    eq.dailyRate = Math.max(0, parseFloat(newRate) || 0);
-    saveState();
-    render();
-  }
-
-  function deleteEquipment(eqId) {
-    state.equipments = state.equipments.filter((e) => e.id !== eqId);
-    saveState();
-    render();
-  }
-
-  function getAvailableEqQty(eq) {
-    const rentedQty = state.rents
-      .filter((r) => r.status === "active" && r.eqId === eq.id)
-      .reduce((acc, r) => acc + Number(r.qty || 0), 0);
-    return Math.max(0, Number(eq.total || 0) - rentedQty);
-  }
-
-  /* الإيجارات */
-  function fillEquipSelect(selectedId = null) {
-    const sel = document.getElementById("rEquipSelect");
-    sel.innerHTML = state.equipments
-      .map((eq) => `<option value="${eq.id}">${eq.name} (${fmtIQD(eq.dailyRate)}/يوم)</option>`)
-      .join("");
-    if (selectedId) sel.value = selectedId;
-  }
-
-  function onRentEquipChange() {
-    const eqId = parseInt(document.getElementById("rEquipSelect").value, 10);
-    const eq = state.equipments.find((e) => e.id === eqId);
-    if (eq) document.getElementById("rDailyRate").value = eq.dailyRate;
-  }
-
-  function openRentModal(editId = null) {
-    fillEquipSelect();
-    if (editId) {
-      const r = state.rents.find((x) => x.id === editId);
-      if (!r) return;
-      document.getElementById("rentModalTitle").textContent = "تعديل قيد الإيجار";
-      document.getElementById("rEditId").value = r.id;
-      document.getElementById("rTenant").value = r.tenant;
-      document.getElementById("rPhone").value = r.phone || "لا يوجد";
-      fillEquipSelect(r.eqId);
-      document.getElementById("rQty").value = r.qty;
-      document.getElementById("rDailyRate").value = r.dailyRate;
-      document.getElementById("rNotes").value = r.notes || "";
-    } else {
-      document.getElementById("rentModalTitle").textContent = "تسجيل إيجار جديد";
-      document.getElementById("rEditId").value = "";
-      document.getElementById("rTenant").value = "";
-      document.getElementById("rPhone").value = "لا يوجد";
-      onRentEquipChange();
-      document.getElementById("rQty").value = 1;
-      document.getElementById("rNotes").value = "";
-    }
-    openModal("rentModal");
-  }
-
-  function saveRent() {
-    const editId = document.getElementById("rEditId").value;
-    const tenant = document.getElementById("rTenant").value.trim();
-    const phone = document.getElementById("rPhone").value.trim() || "لا يوجد";
-    const eqId = parseInt(document.getElementById("rEquipSelect").value, 10);
-    const eq = state.equipments.find((e) => e.id === eqId);
-    const qty = Math.max(1, parseInt(document.getElementById("rQty").value, 10) || 1);
-    const dailyRate = Math.max(0, parseFloat(document.getElementById("rDailyRate").value) || 0);
-    const notes = document.getElementById("rNotes").value.trim();
-    if (!tenant) return;
-
-    if (editId) {
-      const r = state.rents.find((x) => String(x.id) === String(editId));
-      if (r) {
-        r.tenant = tenant;
-        r.phone = phone;
-        r.eqId = eqId;
-        r.eqName = eq ? eq.name : r.eqName;
-        r.qty = qty;
-        r.dailyRate = dailyRate;
-        r.notes = notes;
+    function toggleEquipManager(forceState = null) {
+      equipDrawerVisible = typeof forceState === "boolean" ? forceState : !equipDrawerVisible;
+      const box = document.getElementById("equipManagerBox");
+      if (box) {
+        box.classList.toggle("open", equipDrawerVisible);
+        if (equipDrawerVisible) renderEquipManagerList();
       }
-    } else {
-      state.rents.unshift({
-        id: Date.now(),
-        tenant,
-        phone,
-        eqId,
-        eqName: eq ? eq.name : "معدة",
-        qty,
-        dailyRate,
-        startDate: todayISO(),
-        notes,
-        status: "active"
-      });
     }
 
-    saveState();
-    closeModal("rentModal");
-    render();
-  }
+    function addNewEquipItem() {
+      const nameInput = document.getElementById("mgrEqName");
+      const totalInput = document.getElementById("mgrEqTotal");
+      const priceInput = document.getElementById("mgrEqAssetPrice");
+      const rateInput = document.getElementById("mgrEqDailyRate");
 
-  function deleteRent(id) {
-    state.rents = state.rents.filter((r) => r.id !== id);
-    saveState();
-    render();
-  }
+      const name = (nameInput.value || "").trim();
+      const total = Math.max(0, parseInt(totalInput.value, 10) || 0);
+      const assetPrice = Math.max(0, parseFloat(priceInput.value) || 0);
+      const dailyRate = Math.max(0, parseFloat(rateInput.value) || 0);
 
-  /* نافذة تفاصيل الاستلام المصغّرة */
-  function openReceiveModal(id) {
-    const r = state.rents.find((x) => x.id === id);
-    if (!r) return;
-    activeReceiveId = id;
+      if (!name) return;
 
-    const start = new Date(r.startDate || todayISO());
-    const now = new Date(todayISO());
-    const diffDays = Math.max(1, Math.round((now - start) / (1000 * 60 * 60 * 24)) || 1);
+      equipItems.push({
+        id: Date.now(),
+        name,
+        total,
+        assetPrice,
+        dailyRate
+      });
 
-    document.getElementById("recDays").value = diffDays;
-    document.getElementById("recRate").value = r.dailyRate;
-    document.getElementById("receiveSummaryBox").innerHTML = `
-      <div><strong>المستأجر:</strong> ${r.tenant} (${r.phone || "لا يوجد"})</div>
-      <div><strong>المعدة والعدد:</strong> ${r.eqName} × ${r.qty}</div>
-      <div><strong>بدء الإيجار:</strong> ${r.startDate || todayISO()}</div>
-    `;
-    updateReceiveCalc();
-    openModal("receiveModal");
-  }
+      saveEquipItems();
+      nameInput.value = "";
+      totalInput.value = "";
+      priceInput.value = "";
+      rateInput.value = "";
+      renderEquipManagerList();
+    }
 
-  function updateReceiveCalc() {
-    const r = state.rents.find((x) => x.id === activeReceiveId);
-    if (!r) return;
-    const days = Math.max(1, parseInt(document.getElementById("recDays").value, 10) || 1);
-    const rate = Math.max(0, parseFloat(document.getElementById("recRate").value) || 0);
-    document.getElementById("recTotalBox").textContent = `الإجمالي (${days} يوم): ${fmtIQD(r.qty * rate * days)}`;
-  }
+    function changeEquipDailyRate(id, val) {
+      const item = equipItems.find((e) => e.id === id);
+      if (!item) return;
+      item.dailyRate = Math.max(0, parseFloat(val) || 0);
+      saveEquipItems();
+      renderEquipManagerList();
+    }
 
-  function confirmReceiveRent() {
-    const r = state.rents.find((x) => x.id === activeReceiveId);
-    if (!r) return;
-    const days = Math.max(1, parseInt(document.getElementById("recDays").value, 10) || 1);
-    const rate = Math.max(0, parseFloat(document.getElementById("recRate").value) || 0);
+    function removeEquipItem(id) {
+      equipItems = equipItems.filter((e) => e.id !== id);
+      saveEquipItems();
+      renderEquipManagerList();
+    }
 
-    r.status = "completed";
-    r.days = days;
-    r.dailyRate = rate;
-    r.totalAmount = r.qty * rate * days;
-    r.endDate = todayISO();
+    function renderEquipManagerList() {
+      const listEl = document.getElementById("equipManagerList");
+      if (!listEl) return;
 
-    saveState();
-    closeModal("receiveModal");
-    render();
-  }
-
-  function openRentHistoryModal() {
-    const done = state.rents.filter((r) => r.status === "completed");
-    const box = document.getElementById("rentHistoryList");
-    if (!done.length) {
-      box.innerHTML = `<div style="text-align:center;color:#6b7280;padding:12px;font-size:12px;">لا توجد إيجارات منتهية.</div>`;
-    } else {
-      box.innerHTML = done
+      listEl.innerHTML = equipItems
         .map(
-          (r) => `
-          <div class="history-item" style="cursor:default;">
-            <div>
-              <strong>${r.tenant}</strong><br>
-              <small style="color:#6b7280;">${r.eqName} × ${r.qty} (${r.days || 1} يوم) — ${r.endDate || ""}</small>
+          (eq) => `
+          <div class="equip-item-card">
+            <div class="equip-item-name">${eq.name}</div>
+            <div class="equip-item-meta">متاح ${eq.total} من ${eq.total} | الإيجار: ${eq.dailyRate} د.ع/يوم</div>
+            <div class="equip-item-actions">
+              <input type="number" class="equip-rate-box" value="${eq.dailyRate}" onchange="changeEquipDailyRate(${eq.id}, this.value)">
+              <button type="button" class="equip-del-btn" onclick="removeEquipItem(${eq.id})">حذف</button>
             </div>
-            <strong style="color:#059669;">${fmtIQD(r.totalAmount || 0)}</strong>
           </div>
         `
         )
         .join("");
     }
-    openModal("rentHistoryModal");
-  }
 
-  /* عرض التبويبات */
-  function renderRentsTab(q) {
-    const activeRents = state.rents.filter((r) => {
-      if (r.status !== "active") return false;
-      if (!q) return true;
-      return (
-        (r.tenant || "").toLowerCase().includes(q) ||
-        (r.eqName || "").toLowerCase().includes(q) ||
-        (r.notes || "").toLowerCase().includes(q)
-      );
-    });
+    function mountEquipSectionIntoMain() {
+      const main = document.getElementById("mainContent");
+      if (!main) return;
+      if (document.getElementById("equipTopToolbar")) return;
 
-    const equipRowsHtml = state.equipments
-      .map(
-        (eq) => `
-        <div class="equip-row-item">
-          <div>
-            <strong style="font-size:13px;">${eq.name}</strong>
-            <div style="font-size:11.5px;color:#6b7280;">متاح ${getAvailableEqQty(eq)} من ${eq.total} | الإيجار: ${fmtIQD(eq.dailyRate)}/يوم</div>
-          </div>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <input type="number" class="form-control" style="width:82px;padding:5px 7px;font-size:12px;" value="${eq.dailyRate}" onchange="updateEquipmentPrice(${eq.id}, this.value)" title="تعديل السعر">
-            <button type="button" class="btn btn-red" style="padding:5px 9px;font-size:11px;" onclick="deleteEquipment(${eq.id})">حذف</button>
-          </div>
+      const wrapper = document.createElement("div");
+      wrapper.id = "equipSectionWrapper";
+      wrapper.innerHTML = `
+        <div class="equip-top-bar" id="equipTopToolbar">
+          <button type="button" class="equip-trigger-btn" onclick="toggleEquipManager()">⚙️ إدارة المعدات</button>
+          <button type="button" class="equip-history-btn" onclick="toggleEquipManager()">📜 السجل</button>
         </div>
-      `
-      )
-      .join("");
 
-    const activeCardsHtml = activeRents.length
-      ? activeRents
-          .map(
-            (r) => `
-          <div class="card" style="border-right:4px solid #0d9488;cursor:default;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <span class="rent-big-name" style="color:var(--rent-name-color);">${r.tenant}</span>
-              <span style="font-size:11px;color:var(--rent-date-color);">${r.startDate || ""}</span>
-            </div>
-            <div class="rent-small-equip">
-              <strong>${r.eqName}</strong> — العدد: <strong>${r.qty}</strong> | السعر: <strong style="color:var(--rent-price-color);">${fmtIQD(r.dailyRate)}/يوم</strong>
-              ${r.notes ? `<div>ملاحظات: ${r.notes}</div>` : ""}
-            </div>
-            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
-              <button type="button" class="btn btn-teal" style="padding:6px 12px;font-size:12px;" onclick="openReceiveModal(${r.id})">📋 تفاصيل الاستلام</button>
-              <button type="button" class="btn btn-gray" style="padding:6px 10px;font-size:12px;" onclick="openRentModal(${r.id})">تعديل</button>
-              <button type="button" class="btn btn-red" style="padding:6px 10px;font-size:12px;" onclick="deleteRent(${r.id})">حذف</button>
-            </div>
+        <div class="equip-manager-box ${equipDrawerVisible ? "open" : ""}" id="equipManagerBox">
+          <div class="equip-mgr-header">
+            <span class="equip-mgr-title">إدارة المعدات (إضافة / تعديل سعر / حذف)</span>
+            <button type="button" class="equip-hide-btn" onclick="toggleEquipManager(false)">إخفاء</button>
           </div>
-        `
-          )
-          .join("")
-      : `<div class="card" style="text-align:center;color:#6b7280;cursor:default;">لا توجد قيود إيجار نشطة حالياً.</div>`;
 
-    return `
-      <div class="rent-top-toolbar">
-        <button type="button" class="rent-equip-btn" onclick="toggleEquipmentDrawer()">⚙️ إدارة المعدات</button>
-        <button type="button" class="rent-history-btn" onclick="openRentHistoryModal()">📜 السجل</button>
-      </div>
-
-      <div class="equip-drawer ${equipmentDrawerOpen ? "open" : ""}">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <strong style="color:#1e40af;font-size:13px;">إدارة المعدات (إضافة / تعديل سعر / حذف)</strong>
-          <button type="button" class="btn btn-gray" style="padding:3px 8px;font-size:11px;" onclick="toggleEquipmentDrawer()">إخفاء</button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
-          <input type="text" id="newEqName" class="form-control" style="padding:7px;font-size:12px;" placeholder="اسم المعدة (مثلاً: قفص سكلة)">
-          <input type="number" id="newEqTotal" class="form-control" style="padding:7px;font-size:12px;" placeholder="العدد الكلي">
-          <input type="number" id="newEqAssetPrice" class="form-control" style="padding:7px;font-size:12px;" placeholder="سعر المعدة (د.ع)">
-          <input type="number" id="newEqDailyRate" class="form-control" style="padding:7px;font-size:12px;" placeholder="إيجار / يوم (د.ع)">
-        </div>
-        <button type="button" class="btn btn-green" style="width:100%;margin-bottom:8px;" onclick="addEquipment()">+ إضافة معدة</button>
-        <div>${equipRowsHtml || '<div style="font-size:12px;color:#6b7280;">لا توجد معدات.</div>'}</div>
-      </div>
-
-      <div class="card" style="padding:12px;cursor:default;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <strong style="font-size:15px;">قيد الإيجار النشط</strong>
-          <span style="background:#ccfbf1;color:#115e59;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:bold;">${activeRents.length}</span>
-        </div>
-        ${activeCardsHtml}
-      </div>
-    `;
-  }
-
-  function render() {
-    const q = (document.getElementById("searchBox").value || "").trim().toLowerCase();
-    const main = document.getElementById("mainContent");
-
-    if (currentTab === "rents") {
-      main.innerHTML = renderRentsTab(q);
-      return;
-    }
-
-    if (currentTab === "debts") {
-      const totalDebts = state.debts.reduce((s, d) => s + Number(d.amount || 0), 0);
-      const list = state.debts.filter((d) => !q || (d.name || "").toLowerCase().includes(q));
-      main.innerHTML = `
-        <div class="sum-box">
-          <div style="font-size:12px;opacity:0.9;">إجمالي الديون الكلية</div>
-          <div style="font-size:20px;font-weight:800;margin-top:4px;">${fmtIQD(totalDebts)}</div>
-        </div>
-        ${list.length ? list.map((d) => `
-          <div class="card" style="cursor:default;">
-            <div style="display:flex;justify-content:space-between;">
-              <strong>${d.name}</strong>
-              <strong style="color:#1e40af;">${fmtIQD(d.amount)}</strong>
-            </div>
-            <div style="font-size:12px;color:#6b7280;margin-top:4px;">${d.date || ""} ${d.note ? "— " + d.note : ""}</div>
+          <div class="equip-form-grid">
+            <input type="text" id="mgrEqName" class="equip-input" placeholder="اسم المعدة (مثلاً: قفص سكلة)">
+            <input type="number" id="mgrEqTotal" class="equip-input" placeholder="العدد الكلي">
+            <input type="number" id="mgrEqAssetPrice" class="equip-input" placeholder="سعر المعدة (د.ع)">
+            <input type="number" id="mgrEqDailyRate" class="equip-input" placeholder="إيجار / يوم (د.ع)">
           </div>
-        `).join("") : `<div class="card" style="text-align:center;color:#6b7280;cursor:default;">لا توجد ديون مسجلة.</div>`}
-      `;
-      return;
-    }
 
-    if (currentTab === "store") {
-      const items = state.items.filter((it) => !q || (it.name || "").toLowerCase().includes(q));
-      main.innerHTML = items.length ? items.map((it) => `
-        <div class="card" style="cursor:default;">
-          <div style="display:flex;justify-content:space-between;">
-            <strong style="color:var(--item-name-color);">${it.name}</strong>
-            <strong style="color:var(--item-price-color);">${fmtIQD(it.price)}</strong>
-          </div>
-          <div style="font-size:12px;color:#6b7280;margin-top:4px;">الكمية المتوفرة: ${it.qty}</div>
-        </div>
-      `).join("") : `<div class="card" style="text-align:center;color:#6b7280;cursor:default;">لا توجد أصناف في المخزن.</div>`;
-      return;
-    }
+          <button type="button" class="equip-add-btn" onclick="addNewEquipItem()">+ إضافة معدة</button>
 
-    if (currentTab === "reports") {
-      main.innerHTML = `
-        <div class="card" style="cursor:default;">
-          <strong style="display:block;margin-bottom:8px;">إعدادات السنبلة</strong>
-          <div style="font-size:12px;color:#4b5563;line-height:1.7;">
-            • عدد الأصناف في المخزن: ${state.items.length}<br>
-            • عدد قيود الإيجار المسجلة: ${state.rents.length}<br>
-            • عدد سجلات الديون: ${state.debts.length}
-          </div>
+          <div id="equipManagerList"></div>
         </div>
       `;
-      return;
+
+      main.prepend(wrapper);
+      if (equipDrawerVisible) {
+        renderEquipManagerList();
+      }
     }
 
-    const items = state.items.filter((it) => !q || (it.name || "").toLowerCase().includes(q));
-    main.innerHTML = `
-      <div class="card" style="cursor:default;">
-        <strong style="display:block;margin-bottom:8px;">نقطة البيع السريعة</strong>
-        ${items.length ? items.map((it) => `
-          <div class="history-item" style="cursor:default;">
-            <div>
-              <strong>${it.name}</strong><br>
-              <small style="color:#6b7280;">متوفر: ${it.qty}</small>
-            </div>
-            <strong style="color:var(--price-color);">${fmtIQD(it.price)}</strong>
-          </div>
-        `).join("") : `<div style="color:#6b7280;font-size:12px;">لا توجد أصناف مطابقة.</div>`}
-      </div>
-    `;
-  }
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.remove("open");
+    }
 
-  render();
-</script>
+    function openItemModal() {
+      const m = document.getElementById("itemModal");
+      if (m) m.classList.add("open");
+    }
+
+    function openDebtModal() {
+      const m = document.getElementById("debtModal");
+      if (m) m.classList.add("open");
+    }
+
+    function openRentModal() {
+      toggleEquipManager(true);
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll(".nav-item").forEach((el) => el.classList.remove("active"));
+      const nav = document.getElementById("nav-" + tab);
+      if (nav) nav.classList.add("active");
+      mountEquipSectionIntoMain();
+    }
+
+    function render() {
+      mountEquipSectionIntoMain();
+    }
+
+    mountEquipSectionIntoMain();
+  </script>
 </body>
 </html>
