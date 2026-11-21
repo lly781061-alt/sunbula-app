@@ -295,7 +295,7 @@
     </div>
   </div>
 
-  <!-- نافذة تفاصيل العميل ودينـه (تتضمن التعديل، تغيير اللون، الحذف، والكاميرا والمعرض) -->
+  <!-- نافذة تفاصيل العميل ودينـه -->
   <div class="modal" id="debtDetailModal">
     <div class="modal-box">
       <div class="modal-title"><span id="ddTitle">تفاصيل حساب العميل</span></div>
@@ -423,7 +423,7 @@
     </div>
   </div>
 
-  <!-- نافذة تفاصيل الإيجار (تعديل، تغيير اللون، حذف، إضافة عدة جديدة بتاريخ جديد، وكاميرا ومعرض) -->
+  <!-- نافذة تفاصيل الإيجار -->
   <div class="modal" id="rentDetailModal">
     <div class="modal-box">
       <div class="modal-title" id="rdTitle">تفاصيل الإيجار</div>
@@ -598,7 +598,7 @@
     } catch (_) {}
   }
 
-  let state = JSON.parse(localStorage.getItem('sunbula_db_v30')) || JSON.parse(localStorage.getItem('sunbula_db_v29')) || JSON.parse(localStorage.getItem('sunbula_db_v28')) || {
+  let state = JSON.parse(localStorage.getItem('sunbula_db_v31')) || JSON.parse(localStorage.getItem('sunbula_db_v30')) || JSON.parse(localStorage.getItem('sunbula_db_v29')) || {
     storeName: 'محل الكهربائيات والإنشائيات - السنبلة',
     userEmail: DEFAULT_DRIVE_EMAIL,
     emailBackups: {},
@@ -681,6 +681,163 @@
   let selectedOperation = null;
   let currentVoucherShareText = '';
   let isHandlingBackPop = false;
+
+  function parseNumberSafe(val) {
+    if (typeof val === 'number') return isFinite(val) ? val : 0;
+    if (!val) return 0;
+    const cleaned = String(val).replace(/[٬،,\sد.ع]/g, '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    const num = parseFloat(cleaned);
+    return isFinite(num) ? num : 0;
+  }
+
+  function upsertImportedDebts(rows) {
+    if (!Array.isArray(rows) || !rows.length) return 0;
+    const nowStr = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    let addedOrUpdated = 0;
+
+    rows.forEach((r, idx) => {
+      const name = String(r.name || '').trim();
+      const amount = parseNumberSafe(r.amount);
+      const phone = String(r.phone || 'لا يوجد').trim() || 'لا يوجد';
+      const note = String(r.note || 'منقول من نسخة سابقة').trim();
+      if (!name) return;
+
+      const existing = state.debts.find(d => d.name.trim() === name);
+      if (existing) {
+        existing.amount = amount;
+        if (phone !== 'لا يوجد' && (!existing.phone || existing.phone === 'لا يوجد')) {
+          existing.phone = phone;
+        }
+        existing.history = existing.history || [];
+        existing.history.unshift({
+          type: 'تحديث من نسخة سابقة',
+          amount,
+          date: nowStr,
+          note,
+          bgColor: '#eff6ff'
+        });
+      } else {
+        state.debts.push({
+          id: Date.now() + idx,
+          name,
+          amount,
+          phone,
+          photo: '',
+          cardColor: '#ffffff',
+          textColor: '#111827',
+          history: [{
+            type: 'منقول من نسخة سابقة',
+            amount,
+            date: nowStr,
+            note,
+            bgColor: '#ffffff'
+          }]
+        });
+      }
+      addedOrUpdated++;
+    });
+
+    if (addedOrUpdated > 0) {
+      logAction('الديون', `استيراد/تحويل ${addedOrUpdated} سجل دين من نسخة سابقة`);
+      save();
+    }
+    return addedOrUpdated;
+  }
+
+  function parseDebtsFromRawText(rawText) {
+    const text = String(rawText || '').trim();
+    if (!text) return [];
+
+    // محاولة قراءة JSON أولاً
+    try {
+      const json = JSON.parse(text);
+      if (Array.isArray(json)) {
+        return json.map(item => ({
+          name: item.name || item.customer || item.الاسم || item.اسم || '',
+          amount: item.amount ?? item.balance ?? item.المبلغ ?? item.الرصيد ?? 0,
+          phone: item.phone || item.الهاتف || 'لا يوجد',
+          note: item.note || item.ملاحظات || 'منقول من نسخة سابقة'
+        })).filter(x => x.name);
+      }
+      if (json && Array.isArray(json.debts)) {
+        return json.debts;
+      }
+    } catch (_) {}
+
+    // محاولة قراءة XML/Spreadsheet بسيط
+    if (text.includes('<Row') || text.includes('<row')) {
+      try {
+        const doc = new DOMParser().parseFromString(text, 'text/xml');
+        const rows = Array.from(doc.querySelectorAll('Row, row'));
+        const parsedXml = [];
+        rows.forEach(row => {
+          const cells = Array.from(row.querySelectorAll('Cell, cell, Data, data, c, v')).map(c => c.textContent.trim()).filter(Boolean);
+          if (cells.length >= 2) {
+            const numCell = cells.find(c => !isNaN(parseNumberSafe(c)) && /[0-9٠-٩]/.test(c));
+            const nameCell = cells.find(c => c !== numCell && isNaN(Number(c)));
+            if (nameCell) {
+              parsedXml.push({ name: nameCell, amount: numCell ? parseNumberSafe(numCell) : 0 });
+            }
+          }
+        });
+        if (parsedXml.length) return parsedXml;
+      } catch (_) {}
+    }
+
+    // قراءة سطر سطر (CSV / Tab / مسافات / شرطات)
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const results = [];
+    for (const line of lines) {
+      if (/^(الاسم|اسم العميل|الرصيد|المبلغ|name|amount)/i.test(line)) continue;
+      let parts = line.split(/[\t,|;]+/).map(s => s.trim()).filter(Boolean);
+      if (parts.length < 2) {
+        const match = line.match(/^(.+?)\s+([-+]?[0-9٠-٩]+(?:[.,٬][0-9٠-٩]+)?)$/);
+        if (match) parts = [match[1].trim(), match[2].trim()];
+      }
+      if (parts.length >= 2) {
+        const amountPart = parts.find(p => /^[-+]?[0-9٠-٩]+(?:[.,٬][0-9٠-٩]+)?$/.test(p.replace(/\s+/g, ''))) || parts[parts.length - 1];
+        const namePart = parts.filter(p => p !== amountPart).join(' ').trim();
+        if (namePart) {
+          results.push({ name: namePart, amount: parseNumberSafe(amountPart) });
+        }
+      }
+    }
+    return results;
+  }
+
+  function importLegacyDebtsFromText() {
+    const area = document.getElementById('legacyDebtsTextInput');
+    const st = document.getElementById('legacyImportStatus');
+    const rows = parseDebtsFromRawText(area ? area.value : '');
+    if (!rows.length) {
+      if (st) st.innerText = 'لم يتم العثور على أسطر ديون صالحة في النص. تأكد من وجود الاسم والمبلغ في كل سطر.';
+      return;
+    }
+    const count = upsertImportedDebts(rows);
+    if (st) st.innerText = `تم نقل ${count} سجل دين إلى سجل الديون بنجاح!`;
+    alert(`تم نقل ${count} سجل دين إلى تطبيق السنبلة بنجاح!`);
+    render();
+  }
+
+  function importLegacyDebtsFromFile(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const content = e.target.result || '';
+      const area = document.getElementById('legacyDebtsTextInput');
+      if (area) area.value = content;
+      const rows = parseDebtsFromRawText(content);
+      if (!rows.length) {
+        alert('لم يتم العثور على أسماء ومبالغ واضحة داخل الملف. يمكنك لصق النص يدوياً في المربع.');
+        return;
+      }
+      const count = upsertImportedDebts(rows);
+      alert(`تم استيراد ونقل ${count} سجل دين من الملف إلى تطبيق السنبلة بنجاح!`);
+      render();
+    };
+    reader.readAsText(file);
+  }
 
   function initBackButtonTrap() {
     try {
@@ -1019,7 +1176,7 @@
       if (state.liveSync && state.liveSync.enabled) {
         state.liveSync.lastSyncDateTime = nowStr;
       }
-      localStorage.setItem('sunbula_db_v30', JSON.stringify(state));
+      localStorage.setItem('sunbula_db_v31', JSON.stringify(state));
       applyTheme();
 
       if (triggerRemotePush && !isApplyingRemote && state.liveSync && state.liveSync.enabled && state.liveSync.syncUrl && state.liveSync.syncUrl.trim()) {
@@ -1058,10 +1215,10 @@
         body: JSON.stringify(payload)
       });
       state.liveSync.lastSyncStatus = 'تمت المزامنة تلقائياً';
-      localStorage.setItem('sunbula_db_v30', JSON.stringify(state));
+      localStorage.setItem('sunbula_db_v31', JSON.stringify(state));
     } catch (_) {
       state.liveSync.lastSyncStatus = 'محلي (بانتظار الاتصال/رابط)';
-      localStorage.setItem('sunbula_db_v30', JSON.stringify(state));
+      localStorage.setItem('sunbula_db_v31', JSON.stringify(state));
     }
   }
 
@@ -1097,7 +1254,7 @@
           if (remoteTs > 0) setLocalSyncTs(remoteTs);
           state.liveSync.lastSyncDateTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
           state.liveSync.lastSyncStatus = 'تم السحب من السحابة';
-          localStorage.setItem('sunbula_db_v30', JSON.stringify(state));
+          localStorage.setItem('sunbula_db_v31', JSON.stringify(state));
           applyTheme();
           if (!silent) {
             alert('تمت مزامنة البيانات من السحابة بنجاح!');
@@ -2379,6 +2536,20 @@
 
       area.innerHTML = `
         <div class="card" style="cursor:default;">
+          <h3 style="font-size:15px; margin-bottom:12px;">📥 نقل سجل الديون من تطبيق الحسابات / درايف</h3>
+          <div class="form-group">
+            <label>استيراد ملف (CSV / TXT / JSON / XML) من الهاتف أو درايف</label>
+            <button type="button" class="btn btn-teal" style="width:100%;" onclick="document.getElementById('legacyDebtsFileInput').click()">📂 اختيار ملف سجل الديون</button>
+            <input type="file" id="legacyDebtsFileInput" accept=".csv,.txt,.json,.xml,.tsv,text/*" style="display:none;" onchange="importLegacyDebtsFromFile(this)">
+          </div>
+          <div class="form-group">
+            <label>أو الصق أسماء العملاء والمبالغ هنا (كل عميل ومبلغه في سطر):</label>
+            <textarea id="legacyDebtsTextInput" class="form-control" rows="4" placeholder="مثال:&#10;رعد جاعد 118&#10;مصطفى ابو ريحانه 12&#10;باسم العميري 841.5"></textarea>
+            <button type="button" class="btn btn-blue" style="width:100%; margin-top:6px;" onclick="importLegacyDebtsFromText()">🔄 تحويل وإضافة إلى سجل الديون</button>
+            <div id="legacyImportStatus" style="font-size:12px; color:#059669; font-weight:bold; margin-top:6px;"></div>
+          </div>
+
+          <hr style="margin:14px 0; border:0; border-top:1px solid #eee;">
           <h3 style="font-size:15px; margin-bottom:12px;">🔤 التحكم في الخط (النوع والحجم)</h3>
           <div class="form-group">
             <label>نوع الخط</label>
