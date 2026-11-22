@@ -102,6 +102,7 @@
   .rent-dates-inline { font-size: calc(var(--app-font-size) - 2px); font-weight: bold; margin-top: 5px; padding: 4px 8px; border-radius: 8px; background: rgba(13, 148, 136, 0.1); display: inline-block; }
   .draft-equip-row { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 7px 10px; margin-bottom: 6px; font-size: 12px; }
   .detail-toolbar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .rent-live-calc-box { background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 12px; padding: 10px; margin-bottom: 10px; text-align: center; }
 
   @media print {
     body * { visibility: hidden !important; }
@@ -384,14 +385,14 @@
     </div>
   </div>
 
-  <!-- نافذة إيجار جديد (معدّلة لحساب الأيام والإجمالي تلقائياً) -->
+  <!-- نافذة إيجار جديد (حاسبة حية تلقائية مرتبطة بالتاريخ والعدد والسعر) -->
   <div class="modal" id="rentModal">
     <div class="modal-box">
       <div class="modal-title">تسجيل إيجار معدة جديد</div>
       <div class="form-group"><label>اسم المستأجر</label><input type="text" id="rCustomer" class="form-control" placeholder="اسم العميل"></div>
       <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="rPhone" class="form-control" placeholder="077..."></div>
       <div style="display:flex; gap:8px;">
-        <div class="form-group" style="flex:1;"><label>تاريخ البدء (تاريخ الأخذ)</label><input type="date" id="rStartDate" class="form-control" onchange="renderDraftRentItems()"></div>
+        <div class="form-group" style="flex:1;"><label>تاريخ البدء (تاريخ الأخذ)</label><input type="date" id="rStartDate" class="form-control" onchange="onRentStartDateChange()"></div>
         <div class="form-group" style="width:105px;"><label>عدد الأيام</label><input type="number" id="rDays" class="form-control" value="1" min="1" oninput="renderDraftRentItems()"></div>
       </div>
 
@@ -400,7 +401,7 @@
         <div class="form-group"><label>اختر المعدة</label><select id="rEquipSelect" class="form-control" onchange="updateRentPrice()"></select></div>
         <div style="display:flex; gap:8px;">
           <div class="form-group" style="flex:1;"><label>سعر المعدة (د.ع)</label><input type="number" id="rItemPrice" class="form-control" value="0" oninput="renderDraftRentItems()"></div>
-          <div class="form-group" style="flex:1;"><label>سعر الإيجار (د.ع/يوم)</label><input type="number" id="rDailyPrice" class="form-control" value="0" oninput="renderDraftRentItems()"></div>
+          <div class="form-group" style="flex:1;"><label>إيجار القطعة (د.ع/يوم)</label><input type="number" id="rDailyPrice" class="form-control" value="0" oninput="renderDraftRentItems()"></div>
           <div class="form-group" style="width:76px;"><label>العدد</label><input type="number" id="rCount" class="form-control" value="1" min="1" oninput="renderDraftRentItems()"></div>
         </div>
         <button type="button" class="btn btn-teal" style="width:100%;" onclick="addEquipToDraftRent()">+ إضافة هذه المعدة للعملية</button>
@@ -426,7 +427,7 @@
     </div>
   </div>
 
-  <!-- نافذة تفاصيل الإيجار -->
+  <!-- نافذة تفاصيل الإيجار (تعمل كحاسبة حية فورية عند تغيير التاريخ أو العدد أو السعر) -->
   <div class="modal" id="rentDetailModal">
     <div class="modal-box">
       <div class="modal-title" id="rdTitle">تفاصيل الإيجار</div>
@@ -438,15 +439,23 @@
         <button type="button" class="btn btn-red" style="flex:1; font-size:12px;" onclick="deleteRentRecord()">🗑️ حذف</button>
       </div>
 
+      <div class="rent-live-calc-box">
+        <div style="font-size:11px; color:#065f46;">الحاسبة الفورية للمجموع (تتحدث تلقائياً عند تغيير التاريخ أو العدد أو السعر)</div>
+        <div id="rdLiveSummaryText" style="font-size:12px; color:#047857; margin-top:3px;"></div>
+        <div id="rdLiveTotalDisplay" style="font-size:21px; font-weight:800; color:#0d9488; margin-top:4px;">0 د.ع</div>
+      </div>
+
       <div class="form-group"><label>اسم المستأجر</label><input type="text" id="rdCustomer" class="form-control"></div>
       <div class="form-group"><label>رقم الهاتف</label><input type="text" id="rdPhone" class="form-control"></div>
       <div style="display:flex; gap:8px;">
-        <div class="form-group" style="flex:1;"><label>تاريخ البدء</label><input type="date" id="rdStartDate" class="form-control"></div>
-        <div class="form-group" style="width:95px;"><label>الأيام</label><input type="number" id="rdDays" class="form-control" min="1"></div>
-        <div class="form-group" style="width:85px;"><label>العدد</label><input type="number" id="rdCount" class="form-control" min="1"></div>
+        <div class="form-group" style="flex:1;"><label>تاريخ البدء</label><input type="date" id="rdStartDate" class="form-control" onchange="onRdDateChange()"></div>
+        <div class="form-group" style="width:95px;"><label>عدد الأيام</label><input type="number" id="rdDays" class="form-control" min="1" oninput="recalcRentDetailLive()"></div>
+        <div class="form-group" style="width:85px;"><label>العدد</label><input type="number" id="rdCount" class="form-control" min="1" oninput="recalcRentDetailLive()"></div>
       </div>
-      <div class="form-group"><label>سعر المعدة (د.ع)</label><input type="number" id="rdItemPrice" class="form-control"></div>
-      <div class="form-group"><label>سعر الإيجار (د.ع/يوم)</label><input type="number" id="rdDailyPrice" class="form-control"></div>
+      <div style="display:flex; gap:8px;">
+        <div class="form-group" style="flex:1;"><label>إيجار القطعة (د.ع/يوم)</label><input type="number" id="rdUnitDailyPrice" class="form-control" oninput="recalcRentDetailLive()"></div>
+        <div class="form-group" style="flex:1;"><label>سعر المعدة (د.ع)</label><input type="number" id="rdItemPrice" class="form-control" oninput="recalcRentDetailLive()"></div>
+      </div>
       <div class="form-group"><label>ملاحظات</label><input type="text" id="rdNote" class="form-control"></div>
 
       <div class="form-group">
@@ -469,7 +478,7 @@
         </div>
         <div style="display:flex; gap:6px;">
           <div class="form-group" style="flex:1; margin-bottom:6px;"><label>سعر المعدة</label><input type="number" id="rdNewItemPrice" class="form-control" value="0"></div>
-          <div class="form-group" style="flex:1; margin-bottom:6px;"><label>إيجار/يوم</label><input type="number" id="rdNewDailyPrice" class="form-control" value="0"></div>
+          <div class="form-group" style="flex:1; margin-bottom:6px;"><label>إيجار القطعة/يوم</label><input type="number" id="rdNewDailyPrice" class="form-control" value="0"></div>
         </div>
         <button type="button" class="btn btn-teal" style="width:100%; font-size:12px;" onclick="addNewEquipEntryForRent()">+ إضافة عملية عدة جديدة بالتاريخ المختار</button>
       </div>
@@ -656,7 +665,7 @@
       { id: 4, name: 'سلم ألومنيوم', itemPrice: 0, price: 5000, total: 6 }
     ],
     debts: [{id:1, name:'علي عدنان', amount:100000, phone:'لا يوجد', photo:'', cardColor:'#ffffff', textColor:'#111827', history:[{type:'دين جديد', amount:150000, date:'2026-11-17 13:01', note:'', bgColor:'#ffffff'}, {type:'استلام دفعة', amount:-50000, date:'2026-11-17 13:04', note:'', bgColor:'#ffffff'}]}],
-    rents: [{id:1, customer:'علي', equipId:3, equipName:'همر', count:2, days:1, itemPrice:0, amount:20000, dailyPrice:10000, phone:'لا يوجد', startDate:'2026-11-17', status:'active', note:'', photo:'', cardColor:'#ffffff', textColor:'#111827', equipmentItems:[{name:'همر', count:2, itemPrice:0, dailyPrice:10000}]}],
+    rents: [{id:1, customer:'علي', equipId:3, equipName:'همر', count:2, days:1, itemPrice:0, amount:20000, dailyPrice:10000, unitDailyPrice:5000, phone:'لا يوجد', startDate:'2026-11-17', status:'active', note:'', photo:'', cardColor:'#ffffff', textColor:'#111827', equipmentItems:[{name:'همر', count:2, itemPrice:0, dailyPrice:5000}]}],
     logs: []
   };
 
@@ -688,9 +697,18 @@
   let selectedOperation = null;
   let currentVoucherShareText = '';
   let isHandlingBackPop = false;
+  let lastTrackedCalendarDay = new Date().toISOString().slice(0, 10);
 
-  // ====== دوال حساب مدة الإيجار والإجمالي (قسم الإيجار فقط) ======
-  function calculateElapsedDays(startDateStr) {
+  // ====== دوال حاسبة الإيجار التلقائية (تحتسب اليوم الجديد فور دخول 12:00 ليلاً + يوم الأخذ) ======
+  function getTodayLocalDateStr() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function calculateDaysFromStartDate(startDateStr) {
     if (!startDateStr) return 1;
     const parts = String(startDateStr).split('-');
     if (parts.length !== 3) return 1;
@@ -698,22 +716,43 @@
     if (isNaN(start.getTime())) return 1;
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const diffDays = Math.floor((today - start) / (1000 * 60 * 60 * 24));
-    return Math.max(1, diffDays);
+    const diffCalendarDays = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+    // يوم الأخذ = 1 يوم، وبعد منتصف الليل (12:00 ص) يتحول تلقائياً لليوم الثاني (+1)
+    return Math.max(1, diffCalendarDays + 1);
   }
 
   function getEffectiveRentDays(rentRecord) {
-    const elapsed = calculateElapsedDays(rentRecord.startDate);
-    const planned = Math.max(1, parseInt(rentRecord.days, 10) || 1);
-    return Math.max(elapsed, planned);
+    if (rentRecord.manualDaysOverride && rentRecord.manualDaysValue) {
+      return Math.max(1, parseInt(rentRecord.manualDaysValue, 10) || 1);
+    }
+    return calculateDaysFromStartDate(rentRecord.startDate);
+  }
+
+  function getUnitDailyPrice(rentRecord) {
+    if (typeof rentRecord.unitDailyPrice === 'number' && !isNaN(rentRecord.unitDailyPrice)) {
+      return rentRecord.unitDailyPrice;
+    }
+    const cnt = Math.max(1, parseInt(rentRecord.count, 10) || 1);
+    const daily = Number(rentRecord.dailyPrice || 0);
+    return daily / cnt;
+  }
+
+  function getRentDailyTotal(rentRecord) {
+    const cnt = Math.max(1, parseInt(rentRecord.count, 10) || 1);
+    const unitDaily = getUnitDailyPrice(rentRecord);
+    return cnt * unitDaily;
   }
 
   function getRentCalculatedTotal(rentRecord) {
     const days = getEffectiveRentDays(rentRecord);
-    const daily = Number(rentRecord.dailyPrice || 0);
-    return days * daily;
+    const dailyTotal = getRentDailyTotal(rentRecord);
+    return days * dailyTotal;
   }
-  // ==============================================================
+
+  function formatCleanEquipBaseName(equipNameStr) {
+    return String(equipNameStr || '').replace(/\s*×\s*\d+\s*$/g, '').trim();
+  }
+  // =========================================================================================
 
   function initBackButtonTrap() {
     try {
@@ -819,7 +858,8 @@
     if (!r) return;
 
     const days = r.status === 'active' ? getEffectiveRentDays(r) : Math.max(1, parseInt(r.days, 10) || 1);
-    const totalAmt = r.status === 'active' ? getRentCalculatedTotal(r) : (r.amount || (r.dailyPrice * days));
+    const dailyTotal = getRentDailyTotal(r);
+    const totalAmt = r.status === 'active' ? getRentCalculatedTotal(r) : (r.amount || (dailyTotal * days));
     const photoHtml = r.photo ? `<div style="margin-top:10px;"><img src="${r.photo}" class="photo-preview" alt="صورة الإيجار"></div>` : '';
 
     document.getElementById('pdfModalTitle').innerText = '📄 سند إيجار معدة (PDF)';
@@ -835,7 +875,7 @@
       <div class="pdf-row"><span>العدد:</span><b>${r.count}</b></div>
       <div class="pdf-row"><span>المدة المحتسبة:</span><b>${days} يوم</b></div>
       <div class="pdf-row"><span>سعر المعدة:</span><b>${Number(r.itemPrice || 0).toLocaleString()} د.ع</b></div>
-      <div class="pdf-row"><span>السعر اليومي للإيجار:</span><b>${r.dailyPrice.toLocaleString()} د.ع/يوم</b></div>
+      <div class="pdf-row"><span>الإيجار اليومي الإجمالي:</span><b>${dailyTotal.toLocaleString()} د.ع/يوم</b></div>
       <div class="pdf-row"><span>المستأجر:</span><b>${r.customer}</b></div>
       <div class="pdf-row"><span>رقم الهاتف:</span><b>${r.phone || 'لا يوجد'}</b></div>
       <div class="pdf-row"><span>تاريخ الأخذ:</span><b>${r.startDate}</b></div>
@@ -845,7 +885,7 @@
       ${photoHtml}
     `;
 
-    currentVoucherShareText = `${state.storeName} - سند إيجار\nالمستأجر: ${r.customer}\nالمعدات: ${r.equipName} × ${r.count}\nالمدة: ${days} يوم\nتاريخ الأخذ: ${r.startDate}${r.returnDate ? '\nتاريخ الإرجاع: ' + r.returnDate : ''}\nالمبلغ الإجمالي: ${totalAmt.toLocaleString()} د.ع`;
+    currentVoucherShareText = `${state.storeName} - سند إيجار\nالمستأجر: ${r.customer}\nالمعدات: ${r.equipName}\nالمدة: ${days} يوم\nتاريخ الأخذ: ${r.startDate}${r.returnDate ? '\nتاريخ الإرجاع: ' + r.returnDate : ''}\nالمبلغ الإجمالي: ${totalAmt.toLocaleString()} د.ع`;
     document.getElementById('pdfVoucherModal').classList.add('open');
   }
 
@@ -1943,7 +1983,7 @@
     save(); openDebtDetail(d.id); render();
   }
 
-  // ====== دوال الإيجار والمعدات (معدّلة حسب الطلب) ======
+  // ====== دوال الإيجار والمعدات (حاسبة حية فورية عند التعديل أو تغيير التاريخ أو العدد) ======
   function openEquipManage() {
     document.getElementById('equipManageList').innerHTML = state.equipments.map(eq => `
       <div style="display:flex; justify-content:space-between; align-items:center; background:#f9fafb; padding:8px; border-radius:10px; margin-bottom:6px; font-size:13px;">
@@ -1981,7 +2021,7 @@
     pendingRentPhoto = '';
     draftRentItems = [];
     document.getElementById('rEquipSelect').innerHTML = state.equipments.map(eq => `<option value="${eq.id}" data-item-price="${eq.itemPrice || 0}" data-price="${eq.price}">${eq.name} (معدة: ${Number(eq.itemPrice || 0).toLocaleString()} | إيجار: ${eq.price.toLocaleString()})</option>`).join('');
-    document.getElementById('rStartDate').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('rStartDate').value = getTodayLocalDateStr();
     document.getElementById('rDays').value = '1';
     document.getElementById('rCustomer').value = '';
     document.getElementById('rPhone').value = '';
@@ -1995,6 +2035,12 @@
     updateRentPrice();
     renderDraftRentItems();
     document.getElementById('rentModal').classList.add('open');
+  }
+
+  function onRentStartDateChange() {
+    const startVal = document.getElementById('rStartDate').value;
+    document.getElementById('rDays').value = calculateDaysFromStartDate(startVal);
+    renderDraftRentItems();
   }
 
   function updateRentPrice() {
@@ -2035,9 +2081,7 @@
     const totalsBox = document.getElementById('draftRentTotalsBox');
     if (!box || !totalsBox) return;
 
-    const startDateVal = document.getElementById('rStartDate') ? document.getElementById('rStartDate').value : '';
-    const inputDays = Math.max(1, parseInt(document.getElementById('rDays') ? document.getElementById('rDays').value : '1', 10) || 1);
-    const days = Math.max(inputDays, calculateElapsedDays(startDateVal));
+    const days = Math.max(1, parseInt(document.getElementById('rDays') ? document.getElementById('rDays').value : '1', 10) || 1);
 
     let itemsToCalc = draftRentItems.slice();
     if (!itemsToCalc.length) {
@@ -2087,15 +2131,17 @@
       itemsList.push({ equipId: select.value, name, count, itemPrice, dailyPrice });
     }
 
-    const startDateVal = document.getElementById('rStartDate').value || new Date().toISOString().slice(0, 10);
-    const inputDays = Math.max(1, parseInt(document.getElementById('rDays').value, 10) || 1);
-    const effectiveDays = Math.max(inputDays, calculateElapsedDays(startDateVal));
+    const startDateVal = document.getElementById('rStartDate').value || getTodayLocalDateStr();
+    const autoDays = calculateDaysFromStartDate(startDateVal);
+    const inputDays = Math.max(1, parseInt(document.getElementById('rDays').value, 10) || autoDays);
+    const isCustomDays = inputDays !== autoDays;
 
     const equipSummary = itemsList.map(it => `${it.name}${it.count > 1 ? ' × ' + it.count : ''}`).join('، ');
     const totalCount = itemsList.reduce((s, it) => s + it.count, 0);
     const totalItemPrice = itemsList.reduce((s, it) => s + (it.itemPrice * it.count), 0);
     const totalDailyPrice = itemsList.reduce((s, it) => s + (it.dailyPrice * it.count), 0);
-    const totalCalculatedAmount = totalDailyPrice * effectiveDays;
+    const unitDaily = totalCount > 0 ? (totalDailyPrice / totalCount) : totalDailyPrice;
+    const totalCalculatedAmount = totalDailyPrice * inputDays;
     const note = document.getElementById('rNote').value.trim();
 
     state.rents.unshift({
@@ -2104,10 +2150,13 @@
       equipId: itemsList[0].equipId,
       equipName: equipSummary,
       count: totalCount,
-      days: effectiveDays,
+      days: inputDays,
+      manualDaysOverride: isCustomDays,
+      manualDaysValue: isCustomDays ? inputDays : null,
       itemPrice: totalItemPrice,
       amount: totalCalculatedAmount,
       dailyPrice: totalDailyPrice,
+      unitDailyPrice: unitDaily,
       phone: document.getElementById('rPhone').value || 'لا يوجد',
       startDate: startDateVal,
       status: 'active',
@@ -2120,7 +2169,7 @@
 
     draftRentItems = [];
     pendingRentPhoto = '';
-    logAction('الإيجار', `تأجير ${equipSummary} (${effectiveDays} يوم) للمستأجر ${customer} بمجموع ${totalCalculatedAmount.toLocaleString()} د.ع`);
+    logAction('الإيجار', `تأجير ${equipSummary} (${inputDays} يوم) للمستأجر ${customer} بمجموع ${totalCalculatedAmount.toLocaleString()} د.ع`);
     save(); closeModal('rentModal'); render();
   }
 
@@ -2140,11 +2189,11 @@
     const sel = document.getElementById('rdNewEquipSelect');
     const eq = state.equipments.find(x => String(x.id) === String(sel.value));
     const eqName = eq ? eq.name : (sel.selectedOptions[0] ? sel.selectedOptions[0].text.split(' (')[0] : 'معدة');
-    const newDate = document.getElementById('rdNewEquipDate').value || new Date().toISOString().slice(0, 10);
+    const newDate = document.getElementById('rdNewEquipDate').value || getTodayLocalDateStr();
     const newCount = Math.max(1, parseInt(document.getElementById('rdNewEquipCount').value) || 1);
     const newItemPrice = parseFloat(document.getElementById('rdNewItemPrice').value) || 0;
     const newDailyPrice = parseFloat(document.getElementById('rdNewDailyPrice').value) || 0;
-    const newDays = calculateElapsedDays(newDate);
+    const newDays = calculateDaysFromStartDate(newDate);
     const lineDaily = newDailyPrice * newCount;
 
     state.rents.unshift({
@@ -2154,9 +2203,12 @@
       equipName: `${eqName}${newCount > 1 ? ' × ' + newCount : ''}`,
       count: newCount,
       days: newDays,
+      manualDaysOverride: false,
+      manualDaysValue: null,
       itemPrice: newItemPrice * newCount,
       amount: lineDaily * newDays,
       dailyPrice: lineDaily,
+      unitDailyPrice: newDailyPrice,
       phone: parentRent.phone || 'لا يوجد',
       startDate: newDate,
       status: 'active',
@@ -2174,31 +2226,60 @@
     alert(`تم تسجيل العملية الجديدة بتاريخ ${newDate} مع الإبقاء على تاريخ العملية السابقة.`);
   }
 
+  function onRdDateChange() {
+    const newDate = document.getElementById('rdStartDate').value;
+    const autoDays = calculateDaysFromStartDate(newDate);
+    document.getElementById('rdDays').value = autoDays;
+    recalcRentDetailLive();
+  }
+
+  function recalcRentDetailLive() {
+    const days = Math.max(1, parseInt(document.getElementById('rdDays').value, 10) || 1);
+    const count = Math.max(1, parseInt(document.getElementById('rdCount').value, 10) || 1);
+    const unitDaily = parseFloat(document.getElementById('rdUnitDailyPrice').value) || 0;
+    const dailyTotal = count * unitDaily;
+    const grandTotal = days * dailyTotal;
+
+    const sumTxt = document.getElementById('rdLiveSummaryText');
+    const totDisp = document.getElementById('rdLiveTotalDisplay');
+    if (sumTxt) {
+      sumTxt.innerText = `العدد: ${count} × ${unitDaily.toLocaleString()} د.ع = ${dailyTotal.toLocaleString()} د.ع/يوم × ${days} يوم`;
+    }
+    if (totDisp) {
+      totDisp.innerText = `${grandTotal.toLocaleString()} د.ع`;
+    }
+  }
+
   function openRentDetailModal(id) {
     const r = state.rents.find(x => x.id === id);
     if (!r) return;
     const activeDays = r.status === 'active' ? getEffectiveRentDays(r) : Math.max(1, parseInt(r.days, 10) || 1);
-    const totalAmt = r.status === 'active' ? getRentCalculatedTotal(r) : (r.amount || (r.dailyPrice * activeDays));
+    const cnt = Math.max(1, parseInt(r.count, 10) || 1);
+    const unitDaily = getUnitDailyPrice(r);
+    const dailyTotal = cnt * unitDaily;
+    const totalAmt = r.status === 'active' ? (activeDays * dailyTotal) : (r.amount || (activeDays * dailyTotal));
 
     document.getElementById('rdRentId').value = r.id;
     document.getElementById('rdTitle').innerText = r.status === 'active' ? 'تفاصيل الإيجار النشط' : 'تفاصيل الإيجار المنتهي';
     document.getElementById('rdCustomer').value = r.customer;
     document.getElementById('rdPhone').value = r.phone;
-    document.getElementById('rdStartDate').value = r.startDate || new Date().toISOString().slice(0, 10);
+    document.getElementById('rdStartDate').value = r.startDate || getTodayLocalDateStr();
     document.getElementById('rdDays').value = activeDays;
-    document.getElementById('rdCount').value = r.count;
+    document.getElementById('rdCount').value = cnt;
+    document.getElementById('rdUnitDailyPrice').value = unitDaily;
     document.getElementById('rdItemPrice').value = Number(r.itemPrice || 0);
-    document.getElementById('rdDailyPrice').value = r.dailyPrice;
     document.getElementById('rdNote').value = r.note || '';
     document.getElementById('rdCameraInput').value = '';
     document.getElementById('rdGalleryInput').value = '';
+
+    recalcRentDetailLive();
 
     const addBox = document.getElementById('rdAddNewEquipBox');
     if (r.status === 'active') {
       addBox.style.display = 'block';
       const newEqSel = document.getElementById('rdNewEquipSelect');
       newEqSel.innerHTML = state.equipments.map(eq => `<option value="${eq.id}" data-item-price="${eq.itemPrice || 0}" data-price="${eq.price}">${eq.name} (معدة: ${Number(eq.itemPrice || 0).toLocaleString()} | إيجار: ${eq.price.toLocaleString()})</option>`).join('');
-      document.getElementById('rdNewEquipDate').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('rdNewEquipDate').value = getTodayLocalDateStr();
       document.getElementById('rdNewEquipCount').value = '1';
       syncRdNewEquipDefaults();
     } else {
@@ -2214,7 +2295,7 @@
       photoImg.style.display = 'none';
     }
 
-    let extra = `المعدات: ${r.equipName} | سعر المعدة: ${Number(r.itemPrice || 0).toLocaleString()} د.ع | السعر اليومي: ${r.dailyPrice.toLocaleString()} د.ع/يوم<br>المدة: ${activeDays} يوم | المجموع: <b>${totalAmt.toLocaleString()} د.ع</b><br>تاريخ الأخذ: ${r.startDate}`;
+    let extra = `المعدات: ${r.equipName} | إيجار القطعة: ${unitDaily.toLocaleString()} د.ع/يوم | الإيجار اليومي الكلي: ${dailyTotal.toLocaleString()} د.ع/يوم<br>المدة: ${activeDays} يوم | المجموع: <b>${totalAmt.toLocaleString()} د.ع</b><br>تاريخ الأخذ: ${r.startDate}`;
     if(r.status === 'returned') {
       extra += `<br>تاريخ الإرجاع: ${r.returnDate} | المبلغ المستلم: ${(r.amount || 0).toLocaleString()} د.ع`;
     }
@@ -2225,17 +2306,48 @@
   function saveRentEdit() {
     const id = document.getElementById('rdRentId').value;
     const r = state.rents.find(x => x.id == id);
-    r.customer = document.getElementById('rdCustomer').value.trim();
-    r.phone = document.getElementById('rdPhone').value.trim();
-    r.startDate = document.getElementById('rdStartDate').value || r.startDate;
-    r.days = Math.max(1, parseInt(document.getElementById('rdDays').value, 10) || 1);
-    r.count = Math.max(1, parseInt(document.getElementById('rdCount').value) || 1);
-    r.itemPrice = parseFloat(document.getElementById('rdItemPrice').value) || 0;
-    r.dailyPrice = parseFloat(document.getElementById('rdDailyPrice').value) || r.dailyPrice;
-    r.note = document.getElementById('rdNote').value.trim();
-    if (r.status === 'active') {
-      r.amount = getRentCalculatedTotal(r);
+    if (!r) return;
+
+    const newCustomer = document.getElementById('rdCustomer').value.trim();
+    const newPhone = document.getElementById('rdPhone').value.trim();
+    const newStartDate = document.getElementById('rdStartDate').value || r.startDate;
+    const autoDaysFromNewDate = calculateDaysFromStartDate(newStartDate);
+    const editedDays = Math.max(1, parseInt(document.getElementById('rdDays').value, 10) || autoDaysFromNewDate);
+    const editedCount = Math.max(1, parseInt(document.getElementById('rdCount').value, 10) || 1);
+    const editedUnitDaily = parseFloat(document.getElementById('rdUnitDailyPrice').value) || 0;
+    const editedItemPrice = parseFloat(document.getElementById('rdItemPrice').value) || 0;
+    const editedNote = document.getElementById('rdNote').value.trim();
+
+    r.customer = newCustomer;
+    r.phone = newPhone;
+    r.startDate = newStartDate;
+    r.days = editedDays;
+
+    // إذا كان عدد الأيام المدخل يساوي الفرق الطبيعي من التاريخ، يظل يتزايد تلقائياً كل ليلة الساعة 12
+    if (editedDays === autoDaysFromNewDate) {
+      r.manualDaysOverride = false;
+      r.manualDaysValue = null;
+    } else {
+      r.manualDaysOverride = true;
+      r.manualDaysValue = editedDays;
     }
+
+    r.count = editedCount;
+    r.unitDailyPrice = editedUnitDaily;
+    r.dailyPrice = editedCount * editedUnitDaily;
+    r.itemPrice = editedItemPrice;
+    r.note = editedNote;
+
+    // تحديث اسم المعدة بالعدد الجديد إن كانت معدة مفردة
+    if (!String(r.equipName).includes('،')) {
+      const baseName = formatCleanEquipBaseName(r.equipName);
+      if (baseName) {
+        r.equipName = `${baseName}${editedCount > 1 ? ' × ' + editedCount : ''}`;
+      }
+    }
+
+    r.amount = r.dailyPrice * editedDays;
+
     save(); closeModal('rentDetailModal'); render();
   }
 
@@ -2251,11 +2363,13 @@
     event.stopPropagation();
     const r = state.rents.find(x => x.id === id);
     const diff = getEffectiveRentDays(r);
+    const dailyTotal = getRentDailyTotal(r);
     r.days = diff;
-    r.calculatedDue = diff * r.dailyPrice;
+    r.dailyPrice = dailyTotal;
+    r.calculatedDue = diff * dailyTotal;
     document.getElementById('retRentId').value = r.id;
     document.getElementById('retEquipName').innerText = `${r.customer} — ${r.equipName}`;
-    document.getElementById('retDetails').innerHTML = `تاريخ الأخذ: ${r.startDate} | المدة: ${diff} يوم × ${r.dailyPrice.toLocaleString()} د.ع/يوم`;
+    document.getElementById('retDetails').innerHTML = `تاريخ الأخذ: ${r.startDate} | المدة: ${diff} يوم × ${dailyTotal.toLocaleString()} د.ع/يوم`;
     document.getElementById('retTotalDue').innerText = r.calculatedDue.toLocaleString() + ' د.ع';
     document.getElementById('returnRentModal').classList.add('open');
   }
@@ -2263,8 +2377,8 @@
   function finishReturnRent(type) {
     const r = state.rents.find(x => x.id == document.getElementById('retRentId').value);
     r.status = 'returned';
-    if (!r.startDate) r.startDate = new Date().toISOString().slice(0, 10);
-    r.returnDate = new Date().toISOString().slice(0, 10);
+    if (!r.startDate) r.startDate = getTodayLocalDateStr();
+    r.returnDate = getTodayLocalDateStr();
     r.amount = r.calculatedDue;
     if (type === 'account') {
       let d = state.debts.find(x => x.name === r.customer);
@@ -2403,18 +2517,19 @@
         `).join('')}
       `;
     } 
-    // ====== قسم الإيجارات (المعدات مخفية داخل أيقونة إدارة المعدات + قيد الإيجار النشط في الأعلى + جمع الأيام والإجمالي) ======
+    // ====== قسم الإيجارات (المعدات داخل إدارة المعدات + قيد الإيجار النشط في الأعلى + حاسبة حية وتحديث تلقائي عند 12:00 ليلاً) ======
     else if (currentTab === 'rents') {
       const activeRentsHtml = state.rents.filter(r => r.status === 'active').map(r => {
         const days = getEffectiveRentDays(r);
-        const totalDue = getRentCalculatedTotal(r);
+        const dailyTotal = getRentDailyTotal(r);
+        const totalDue = days * dailyTotal;
         return `
           <div class="card" onclick="openRentDetailModal(${r.id})" style="${getCardStyle(r.cardColor, r.textColor)} border-right: 4px solid #2563eb; display:flex; justify-content:space-between; align-items:center;">
             <div>
               <div class="rent-big-name">${r.customer}</div>
               <div class="rent-small-equip">المعدات: ${r.equipName}</div>
               <div style="font-size:11px; opacity:0.8; margin-top:2px;">البدء: ${r.startDate} | المدة: <b>${days} يوم</b>${r.photo ? ' | 🖼️ مرفق صورة' : ''}</div>
-              <div style="font-size:12px; color:var(--rent-price-color); font-weight:bold; margin-top:2px;">الإيجار: ${r.dailyPrice.toLocaleString()} د.ع/يوم | المجموع: ${totalDue.toLocaleString()} د.ع</div>
+              <div style="font-size:12px; color:var(--rent-price-color); font-weight:bold; margin-top:2px;">الإيجار: ${dailyTotal.toLocaleString()} د.ع/يوم | المجموع: ${totalDue.toLocaleString()} د.ع</div>
             </div>
             <div style="text-align:left; display:flex; align-items:center; gap:8px;">
               <span style="color:#059669; font-weight:bold; font-size:15px;">${totalDue.toLocaleString()} د.ع</span>
@@ -2679,6 +2794,19 @@
     });
   }
 
+  // تحديث تلقائي فوري لعداد الأيام في قسم الإيجار عند حلول منتصف الليل (12:00 ليلاً)
+  function startMidnightRentRolloverWatcher() {
+    setInterval(() => {
+      const currentDay = getTodayLocalDateStr();
+      if (currentDay !== lastTrackedCalendarDay) {
+        lastTrackedCalendarDay = currentDay;
+        if (currentTab === 'rents' && !document.querySelector('.modal.open')) {
+          render();
+        }
+      }
+    }, 20000);
+  }
+
   setupAppIdentity();
   initBackButtonTrap();
   if (state.driveAutoRestore && state.driveAutoRestore.enabled) {
@@ -2690,6 +2818,7 @@
     pullFromRemoteSync(true).then(ok => { if (ok) render(); });
   }
   startKeepLikeSyncLoop();
+  startMidnightRentRolloverWatcher();
   checkScheduledAutoDriveBackup();
   setInterval(checkScheduledAutoDriveBackup, 30000);
 </script>
