@@ -80,6 +80,8 @@
   
   .sum-box { background: #2563eb; color: white; padding: 16px; border-radius: 18px; margin-bottom: 12px; }
   .history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-radius: 10px; border-bottom: 1px solid #f3f4f6; margin-bottom: 4px; font-size: calc(var(--app-font-size) - 2px); cursor: pointer; background: #ffffff; }
+  .log-toolbar { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+  .log-row-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px; border-radius: 10px; border: 1px solid #e5e7eb; margin-bottom: 6px; font-size: calc(var(--app-font-size) - 2px); background: #f8fafc; }
   .badge-email { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 8px 10px; border-radius: 10px; font-size: 12px; margin-bottom: 8px; }
   .status-banner { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 8px 10px; border-radius: 10px; font-size: 12px; margin-top: 8px; font-weight: bold; }
   .auto-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; margin-top: 8px; }
@@ -98,9 +100,10 @@
 
   .clickable-name { cursor: pointer; display: inline-block; }
   .rent-big-name { font-size: calc(var(--app-font-size) + 4px); font-weight: 800; line-height: 1.25; }
-  .rent-line-list { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
-  .rent-line-item { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: calc(var(--app-font-size) - 1px); padding: 2px 0; }
-  .rent-line-sub { font-size: calc(var(--app-font-size) - 3px); opacity: 0.78; }
+  .rent-line-list { margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+  .rent-line-item { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: calc(var(--app-font-size) - 1px); padding: 3px 0; }
+  .rent-line-sub { font-size: calc(var(--app-font-size) - 3px); opacity: 0.85; margin-top: 2px; }
+  .rent-day-total-badge { display: inline-block; font-weight: 800; color: #0f766e; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 6px; padding: 1px 6px; margin-top: 2px; }
   .rent-line-amount { font-weight: 700; color: var(--rent-price-color); white-space: nowrap; }
   .rent-sum-divider { border: 0; border-top: 1.5px solid #cbd5e1; margin: 6px 0; }
   .rent-grand-total-row { display: flex; justify-content: space-between; align-items: center; font-size: calc(var(--app-font-size) + 1px); font-weight: 800; color: #0f766e; }
@@ -246,7 +249,8 @@
   <div class="modal" id="globalLogModal">
     <div class="modal-box">
       <div class="modal-title"><span>📜 سجل عمليات القسم</span> <button class="btn btn-gray" style="padding:4px 8px; font-size:11px;" onclick="closeModal('globalLogModal')">إغلاق</button></div>
-      <div id="globalLogContent" style="max-height:300px; overflow-y:auto; font-size:12px;"></div>
+      <div id="globalLogToolbar"></div>
+      <div id="globalLogContent" style="max-height:320px; overflow-y:auto; font-size:12px;"></div>
     </div>
   </div>
 
@@ -446,7 +450,7 @@
       </div>
 
       <div class="rent-live-calc-box">
-        <div style="font-size:11px; color:#065f46; font-weight:bold;">الحاسبة الفورية للمعدات والمجموع الكلي</div>
+        <div style="font-size:11px; color:#065f46; font-weight:bold;">الحاسبة الفورية للمعدات ومجموع اليوم والمجموع الكلي</div>
         <div id="rdLinesBreakdownBox" style="margin-top:6px; font-size:12px; color:#1f2937;"></div>
         <hr class="rent-sum-divider">
         <div class="rent-grand-total-row">
@@ -463,7 +467,7 @@
       </div>
 
       <div style="margin-bottom:10px;">
-        <div style="font-size:12px; font-weight:bold; color:#0f766e; margin-bottom:6px;">المعدات داخل هذه العملية (العدد × إيجار القطعة/يوم × الأيام):</div>
+        <div style="font-size:12px; font-weight:bold; color:#0f766e; margin-bottom:6px;">المعدات داخل هذه العملية (العدد × إيجار القطعة/يوم = مجموع اليوم × الأيام):</div>
         <div id="rdEquipmentRowsEditor"></div>
       </div>
 
@@ -569,7 +573,6 @@
   const DEFAULT_DRIVE_EMAIL = 'lly781061@gmail.com';
   const SYNC_TS_KEY = 'sunbula_cloud_updated_at';
 
-  // ====== دوال تنسيق التاريخ والوقت بنظام 12 ساعة (ص / م) ======
   function formatTime12HourFromDate(dateObj = new Date()) {
     let h = dateObj.getHours();
     const min = String(dateObj.getMinutes()).padStart(2, '0');
@@ -611,16 +614,13 @@
   function formatHistoryDateTime12(rawDateStr) {
     if (!rawDateStr) return getNowDateAnd12Time().full12;
     const str = String(rawDateStr).trim();
-    // إذا كانت تحتوي بالفعل على ص أو م
     if (/(ص|م)\s*\)?$/.test(str)) {
       return str;
     }
-    // صيغة YYYY-MM-DD HH:MM أو DD-MM-YYYY HH:MM
     const m1 = str.match(/^(\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4})\s+\(?(\d{1,2}:\d{2})\)?$/);
     if (m1) {
       return `${m1[1]} (${convert24To12HourStr(m1[2])})`;
     }
-    // صيغة HH:MM DD-MM-YYYY (كما في الصورة)
     const m2 = str.match(/^\(?(\d{1,2}:\d{2})\)?\s+(\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4})$/);
     if (m2) {
       return `${m2[2]} (${convert24To12HourStr(m2[1])})`;
@@ -643,7 +643,6 @@
       : (rentRecord.returnTime24 ? convert24To12HourStr(rentRecord.returnTime24) : '');
     return retT ? `الاستلام: ${retD} (${retT})` : `الاستلام: ${retD}`;
   }
-  // ===================================================================
 
   function setupAppIdentity() {
     try {
@@ -791,6 +790,8 @@
   let currentVoucherShareText = '';
   let isHandlingBackPop = false;
   let lastTrackedCalendarDay = new Date().toISOString().slice(0, 10);
+  let activeLogSectionFilter = '';
+  let selectedLogIndices = new Set();
 
   function getTodayLocalDateStr() {
     const now = new Date();
@@ -903,7 +904,11 @@
         <div class="rent-line-item">
           <div>
             <span><b>${ln.name}</b> × ${ln.count} (${ln.days} يوم)</span>
-            <div class="rent-line-sub">${ln.count} × ${ln.dailyPrice.toLocaleString()}/يوم × ${ln.days} يوم${priceNote}</div>
+            <div class="rent-line-sub">
+              ${ln.count} × ${ln.dailyPrice.toLocaleString()}/يوم
+              <span class="rent-day-total-badge">مجموع اليوم: ${ln.lineDaily.toLocaleString()}</span>
+              × ${ln.days} يوم${priceNote}
+            </div>
           </div>
           <span class="rent-line-amount">${ln.lineTotal.toLocaleString()} د.ع</span>
         </div>
@@ -1026,7 +1031,7 @@
     const { lines, dailyTotal, grandTotal } = computeRentBreakdown(r);
     const linesHtml = lines.map(ln => `
       <div class="pdf-row">
-        <span>${ln.name} × ${ln.count} (${ln.days} يوم × ${ln.dailyPrice.toLocaleString()}/يوم)</span>
+        <span>${ln.name} × ${ln.count} (مجموع اليوم: ${ln.lineDaily.toLocaleString()} × ${ln.days} يوم)</span>
         <b>${ln.lineTotal.toLocaleString()} د.ع</b>
       </div>
     `).join('');
@@ -1213,19 +1218,93 @@
     save();
   }
 
+  function getFilteredLogEntriesWithGlobalIdx(sec) {
+    const out = [];
+    state.logs.forEach((l, globalIdx) => {
+      if (l.section === sec) {
+        out.push({ entry: l, globalIdx });
+      }
+    });
+    return out;
+  }
+
   function openSectionLog(sec) {
-    const filtered = state.logs.filter(l => l.section === sec);
-    const content = document.getElementById('globalLogContent');
-    if (filtered.length === 0) {
-      content.innerHTML = '<p style="text-align:center; color:#6b7280; padding:15px;">لا توجد عمليات مسجلة.</p>';
-    } else {
-      content.innerHTML = filtered.map(l => `
-        <div class="history-item">
-          <div><b>${l.desc}</b><br><span style="color:#9ca3af;">${formatHistoryDateTime12(l.time)}</span></div>
-        </div>
-      `).join('');
-    }
+    activeLogSectionFilter = sec;
+    selectedLogIndices = new Set();
+    renderSectionLogModal();
     document.getElementById('globalLogModal').classList.add('open');
+  }
+
+  function renderSectionLogModal() {
+    const sec = activeLogSectionFilter;
+    const toolbarEl = document.getElementById('globalLogToolbar');
+    const contentEl = document.getElementById('globalLogContent');
+    const items = getFilteredLogEntriesWithGlobalIdx(sec);
+
+    if (items.length === 0) {
+      toolbarEl.innerHTML = '';
+      contentEl.innerHTML = '<p style="text-align:center; color:#6b7280; padding:15px;">لا توجد عمليات مسجلة.</p>';
+      return;
+    }
+
+    const allChecked = items.length > 0 && items.every(x => selectedLogIndices.has(x.globalIdx));
+    toolbarEl.innerHTML = `
+      <div class="log-toolbar">
+        <button type="button" class="btn btn-gray" style="padding:5px 10px; font-size:11px;" onclick="toggleSelectAllSectionLogs()">${allChecked ? '☐ إلغاء التحديد' : '☑ تحديد الكل (' + items.length + ')'}</button>
+        <button type="button" class="btn btn-red" style="padding:5px 10px; font-size:11px;" onclick="deleteSelectedSectionLogs()">🗑️ حذف المحدد (${selectedLogIndices.size})</button>
+      </div>
+    `;
+
+    contentEl.innerHTML = items.map(({ entry, globalIdx }) => {
+      const checked = selectedLogIndices.has(globalIdx) ? 'checked' : '';
+      return `
+        <div class="log-row-item">
+          <div style="display:flex; align-items:flex-start; gap:8px; flex:1;">
+            <input type="checkbox" ${checked} style="margin-top:3px; width:16px; height:16px; cursor:pointer;" onchange="toggleSingleLogCheckbox(${globalIdx}, this.checked)">
+            <div>
+              <b>${entry.desc}</b><br>
+              <span style="color:#6b7280;">${formatHistoryDateTime12(entry.time)}</span>
+            </div>
+          </div>
+          <button type="button" class="btn btn-red" style="padding:4px 8px; font-size:11px; white-space:nowrap;" onclick="deleteSingleLogByIdx(${globalIdx})">حذف</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function toggleSingleLogCheckbox(globalIdx, isChecked) {
+    if (isChecked) selectedLogIndices.add(globalIdx);
+    else selectedLogIndices.delete(globalIdx);
+    renderSectionLogModal();
+  }
+
+  function toggleSelectAllSectionLogs() {
+    const items = getFilteredLogEntriesWithGlobalIdx(activeLogSectionFilter);
+    const allChecked = items.length > 0 && items.every(x => selectedLogIndices.has(x.globalIdx));
+    if (allChecked) {
+      items.forEach(x => selectedLogIndices.delete(x.globalIdx));
+    } else {
+      items.forEach(x => selectedLogIndices.add(x.globalIdx));
+    }
+    renderSectionLogModal();
+  }
+
+  function deleteSingleLogByIdx(globalIdx) {
+    if (globalIdx < 0 || globalIdx >= state.logs.length) return;
+    state.logs.splice(globalIdx, 1);
+    selectedLogIndices = new Set();
+    save();
+    renderSectionLogModal();
+  }
+
+  function deleteSelectedSectionLogs() {
+    if (selectedLogIndices.size === 0) {
+      return alert('اختر عملية واحدة أو اضغط "تحديد الكل" أولاً.');
+    }
+    state.logs = state.logs.filter((_, idx) => !selectedLogIndices.has(idx));
+    selectedLogIndices = new Set();
+    save();
+    renderSectionLogModal();
   }
 
   function applyTheme() {
@@ -2263,7 +2342,7 @@
         const count = Math.max(1, parseInt(document.getElementById('rCount').value) || 1);
         itemsToCalc.push({ name, count, itemPrice, dailyPrice, days: defaultDays });
       }
-      box.innerHTML = `<div style="font-size:11px; color:#6b7280;">أضف عدة معدات (دارب، سكلة، قفص سكلة، همر، دريل، كسار...) ليُحسب كل بند ومجموعه ثم المجموع الكلي.</div>`;
+      box.innerHTML = `<div style="font-size:11px; color:#6b7280;">أضف عدة معدات (دارب، سكلة، قفص سكلة، همر، دريل، كسار...) ليُحسب مجموع المعدة في اليوم ثم المجموع الكلي.</div>`;
     } else {
       box.innerHTML = draftRentItems.map((it, idx) => {
         const lnDays = it.days || defaultDays;
@@ -2273,7 +2352,7 @@
           <div class="draft-equip-row">
             <div>
               <b>${it.name}</b> × ${it.count} (${lnDays} يوم)<br>
-              <span style="color:#4b5563;">يومي: ${lineDaily.toLocaleString()} د.ع | المجموع: <b>${lineTotal.toLocaleString()} د.ع</b></span>
+              <span style="color:#4b5563;">مجموع اليوم: <b>${lineDaily.toLocaleString()} د.ع</b> | المجموع الكلي: <b>${lineTotal.toLocaleString()} د.ع</b></span>
             </div>
             <button type="button" class="btn btn-red" style="padding:3px 8px; font-size:11px;" onclick="removeDraftRentItem(${idx})">حذف</button>
           </div>
@@ -2450,12 +2529,13 @@
 
     if (rebuildInputs && editorBox) {
       editorBox.innerHTML = editingRentLines.map((ln, idx) => {
-        const lineTotal = ln.count * ln.dailyPrice * ln.days;
+        const lineDaily = ln.count * ln.dailyPrice;
+        const lineTotal = lineDaily * ln.days;
         return `
           <div class="edit-equip-row-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
               <b>${ln.name}</b>
-              <span style="font-size:12px; font-weight:800; color:#0d9488;">${lineTotal.toLocaleString()} د.ع</span>
+              <span style="font-size:11px; color:#0f766e; font-weight:bold;">اليوم: ${lineDaily.toLocaleString()} | الكلي: ${lineTotal.toLocaleString()} د.ع</span>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
               <div style="flex:1;">
@@ -2480,11 +2560,12 @@
     let grandTotal = 0;
     if (breakdownBox) {
       breakdownBox.innerHTML = editingRentLines.map(ln => {
-        const lineTotal = ln.count * ln.dailyPrice * ln.days;
+        const lineDaily = ln.count * ln.dailyPrice;
+        const lineTotal = lineDaily * ln.days;
         grandTotal += lineTotal;
         return `
           <div style="display:flex; justify-content:space-between; padding:2px 0;">
-            <span><b>${ln.name}</b> × ${ln.count} (${ln.days} يوم × ${ln.dailyPrice.toLocaleString()})</span>
+            <span><b>${ln.name}</b> × ${ln.count} (اليوم: ${lineDaily.toLocaleString()} × ${ln.days} يوم)</span>
             <b>${lineTotal.toLocaleString()} د.ع</b>
           </div>
         `;
