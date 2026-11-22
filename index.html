@@ -104,7 +104,7 @@
   .rent-line-amount { font-weight: 700; color: var(--rent-price-color); white-space: nowrap; }
   .rent-sum-divider { border: 0; border-top: 1.5px solid #cbd5e1; margin: 6px 0; }
   .rent-grand-total-row { display: flex; justify-content: space-between; align-items: center; font-size: calc(var(--app-font-size) + 1px); font-weight: 800; color: #0f766e; }
-  .rent-dates-inline { font-size: calc(var(--app-font-size) - 2px); font-weight: bold; margin-top: 5px; padding: 4px 8px; border-radius: 8px; background: rgba(13, 148, 136, 0.1); display: inline-block; }
+  .rent-dates-inline { font-size: calc(var(--app-font-size) - 2px); font-weight: bold; margin-top: 5px; padding: 4px 8px; border-radius: 8px; background: rgba(13, 148, 136, 0.1); display: block; line-height: 1.5; }
   .draft-equip-row { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 7px 10px; margin-bottom: 6px; font-size: 12px; }
   .detail-toolbar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
   .rent-live-calc-box { background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 12px; padding: 10px; margin-bottom: 10px; }
@@ -391,7 +391,7 @@
     </div>
   </div>
 
-  <!-- نافذة إيجار جديد (إضافة عدة معدات بأسعارها وأعدادها وحساب مجموع كل معدة والمجموع الكلي) -->
+  <!-- نافذة إيجار جديد -->
   <div class="modal" id="rentModal">
     <div class="modal-box">
       <div class="modal-title">تسجيل إيجار معدة جديد</div>
@@ -433,7 +433,7 @@
     </div>
   </div>
 
-  <!-- نافذة تفاصيل الإيجار (تعديل كل معدة وسعرها وعددها + إضافة معدة جديدة لنفس العملية أو بتاريخ جديد) -->
+  <!-- نافذة تفاصيل الإيجار -->
   <div class="modal" id="rentDetailModal">
     <div class="modal-box">
       <div class="modal-title" id="rdTitle">تفاصيل الإيجار</div>
@@ -569,6 +569,82 @@
   const DEFAULT_DRIVE_EMAIL = 'lly781061@gmail.com';
   const SYNC_TS_KEY = 'sunbula_cloud_updated_at';
 
+  // ====== دوال تنسيق التاريخ والوقت بنظام 12 ساعة (ص / م) ======
+  function formatTime12HourFromDate(dateObj = new Date()) {
+    let h = dateObj.getHours();
+    const min = String(dateObj.getMinutes()).padStart(2, '0');
+    const period = h >= 12 ? 'م' : 'ص';
+    h = h % 12;
+    if (h === 0) h = 12;
+    const hh = String(h).padStart(2, '0');
+    return `${hh}:${min} ${period}`;
+  }
+
+  function convert24To12HourStr(hhmmStr) {
+    if (!hhmmStr) return formatTime12HourFromDate(new Date());
+    const match = String(hhmmStr).trim().match(/^(\d{1,2}):(\d{2})(?:\s*(ص|م|AM|PM|am|pm))?$/);
+    if (!match) return String(hhmmStr);
+    if (match[3]) {
+      const p = match[3].toLowerCase();
+      const suffix = (p === 'م' || p === 'pm') ? 'م' : 'ص';
+      let hr = parseInt(match[1], 10);
+      if (hr === 0) hr = 12;
+      return `${String(hr).padStart(2, '0')}:${match[2]} ${suffix}`;
+    }
+    let hr24 = parseInt(match[1], 10);
+    const suffix = hr24 >= 12 ? 'م' : 'ص';
+    let hr12 = hr24 % 12;
+    if (hr12 === 0) hr12 = 12;
+    return `${String(hr12).padStart(2, '0')}:${match[2]} ${suffix}`;
+  }
+
+  function getNowDateAnd12Time() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const dateStr = `${y}-${m}-${d}`;
+    const time12 = formatTime12HourFromDate(now);
+    return { dateStr, time12, full12: `${dateStr} (${time12})` };
+  }
+
+  function formatHistoryDateTime12(rawDateStr) {
+    if (!rawDateStr) return getNowDateAnd12Time().full12;
+    const str = String(rawDateStr).trim();
+    // إذا كانت تحتوي بالفعل على ص أو م
+    if (/(ص|م)\s*\)?$/.test(str)) {
+      return str;
+    }
+    // صيغة YYYY-MM-DD HH:MM أو DD-MM-YYYY HH:MM
+    const m1 = str.match(/^(\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4})\s+\(?(\d{1,2}:\d{2})\)?$/);
+    if (m1) {
+      return `${m1[1]} (${convert24To12HourStr(m1[2])})`;
+    }
+    // صيغة HH:MM DD-MM-YYYY (كما في الصورة)
+    const m2 = str.match(/^\(?(\d{1,2}:\d{2})\)?\s+(\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4})$/);
+    if (m2) {
+      return `${m2[2]} (${convert24To12HourStr(m2[1])})`;
+    }
+    return str;
+  }
+
+  function formatRentStartDisplay(rentRecord) {
+    const startD = rentRecord.startDate || getTodayLocalDateStr();
+    const startT = rentRecord.startTime12
+      ? convert24To12HourStr(rentRecord.startTime12)
+      : (rentRecord.startTime24 ? convert24To12HourStr(rentRecord.startTime24) : '');
+    return startT ? `أخذ الإيجار: ${startD} (${startT})` : `أخذ الإيجار: ${startD}`;
+  }
+
+  function formatRentReturnDisplay(rentRecord) {
+    const retD = rentRecord.returnDate || '-';
+    const retT = rentRecord.returnTime12
+      ? convert24To12HourStr(rentRecord.returnTime12)
+      : (rentRecord.returnTime24 ? convert24To12HourStr(rentRecord.returnTime24) : '');
+    return retT ? `الاستلام: ${retD} (${retT})` : `الاستلام: ${retD}`;
+  }
+  // ===================================================================
+
   function setupAppIdentity() {
     try {
       const iconCanvas = document.createElement('canvas');
@@ -680,8 +756,8 @@
       { id: 5, name: 'دريل', itemPrice: 0, price: 5000, total: 5 },
       { id: 6, name: 'كسار', itemPrice: 0, price: 10000, total: 3 }
     ],
-    debts: [{id:1, name:'علي عدنان', amount:100000, phone:'لا يوجد', photo:'', cardColor:'#ffffff', textColor:'#111827', history:[{type:'دين جديد', amount:150000, date:'2026-11-17 13:01', note:'', bgColor:'#ffffff'}, {type:'استلام دفعة', amount:-50000, date:'2026-11-17 13:04', note:'', bgColor:'#ffffff'}]}],
-    rents: [{id:1, customer:'علي', equipId:4, equipName:'همر × 2', count:2, days:1, itemPrice:0, amount:20000, dailyPrice:10000, unitDailyPrice:10000, phone:'لا يوجد', startDate:'2026-11-17', status:'active', note:'', photo:'', cardColor:'#ffffff', textColor:'#111827', equipmentItems:[{name:'همر', count:2, itemPrice:0, dailyPrice:10000}]}],
+    debts: [{id:1, name:'علي عدنان', amount:100000, phone:'لا يوجد', photo:'', cardColor:'#ffffff', textColor:'#111827', history:[{type:'دين جديد', amount:150000, date:'2026-11-17 (01:01 م)', note:'', bgColor:'#ffffff'}, {type:'استلام دفعة', amount:-50000, date:'2026-11-17 (01:04 م)', note:'', bgColor:'#ffffff'}]}],
+    rents: [{id:1, customer:'علي', equipId:4, equipName:'همر × 2', count:2, days:1, itemPrice:0, amount:20000, dailyPrice:10000, unitDailyPrice:10000, phone:'لا يوجد', startDate:'2026-11-17', startTime12:'09:00 ص', status:'active', note:'', photo:'', cardColor:'#ffffff', textColor:'#111827', equipmentItems:[{name:'همر', count:2, itemPrice:0, dailyPrice:10000}]}],
     logs: []
   };
 
@@ -716,7 +792,6 @@
   let isHandlingBackPop = false;
   let lastTrackedCalendarDay = new Date().toISOString().slice(0, 10);
 
-  // ====== دوال حاسبة الإيجار المتعددة البنود والتلقائية ======
   function getTodayLocalDateStr() {
     const now = new Date();
     const y = now.getFullYear();
@@ -748,7 +823,6 @@
     return calculateDaysFromStartDate(rentRecord.startDate);
   }
 
-  // استخراج قائمة البنود (لكل معدة: الاسم، العدد، سعر القطعة/يوم، سعر المعدة، ومدة خاصة إن وجدت)
   function normalizeRentLines(rentRecord) {
     const baseDays = getEffectiveRentDays(rentRecord);
     if (Array.isArray(rentRecord.equipmentItems) && rentRecord.equipmentItems.length > 0) {
@@ -845,7 +919,6 @@
       </div>
     `;
   }
-  // =========================================================================================
 
   function initBackButtonTrap() {
     try {
@@ -917,7 +990,7 @@
 
     const historyRows = (d.history || []).map(h => `
       <div class="pdf-row">
-        <span>${h.type} (${h.date})${h.note ? ' - ' + h.note : ''}</span>
+        <span>${h.type} (${formatHistoryDateTime12(h.date)})${h.note ? ' - ' + h.note : ''}</span>
         <b>${h.amount > 0 ? '+' : ''}${h.amount.toLocaleString()} د.ع</b>
       </div>
     `).join('');
@@ -931,7 +1004,7 @@
           <b style="font-size:15px; color:#0B2A4A;">${state.storeName}</b><br>
           <span style="font-size:11px; color:#6b7280;">سند كشف حساب دين</span>
         </div>
-        <span style="font-size:11px; color:#374151;">${new Date().toISOString().slice(0, 16).replace('T', ' ')}</span>
+        <span style="font-size:11px; color:#374151;">${getNowDateAnd12Time().full12}</span>
       </div>
       <div class="pdf-row"><span>اسم العميل:</span><b>${d.name}</b></div>
       <div class="pdf-row"><span>رقم الهاتف:</span><b>${d.phone || 'لا يوجد'}</b></div>
@@ -971,8 +1044,8 @@
       </div>
       <div class="pdf-row"><span>المستأجر:</span><b>${r.customer}</b></div>
       <div class="pdf-row"><span>رقم الهاتف:</span><b>${r.phone || 'لا يوجد'}</b></div>
-      <div class="pdf-row"><span>تاريخ الأخذ:</span><b>${r.startDate}</b></div>
-      ${r.returnDate ? `<div class="pdf-row"><span>تاريخ الإرجاع:</span><b>${r.returnDate}</b></div>` : ''}
+      <div class="pdf-row"><span>وقت الأخذ:</span><b>${formatRentStartDisplay(r)}</b></div>
+      ${r.status === 'returned' ? `<div class="pdf-row"><span>وقت الاستلام:</span><b>${formatRentReturnDisplay(r)}</b></div>` : ''}
       <div style="margin-top:8px; font-size:12px; font-weight:bold; color:#0B2A4A;">تفاصيل المعدات:</div>
       ${linesHtml}
       <div class="pdf-row"><span>الإيجار اليومي الإجمالي:</span><b>${dailyTotal.toLocaleString()} د.ع/يوم</b></div>
@@ -981,7 +1054,7 @@
       ${photoHtml}
     `;
 
-    currentVoucherShareText = `${state.storeName} - سند إيجار\nالمستأجر: ${r.customer}\nالمعدات: ${r.equipName}\nتاريخ الأخذ: ${r.startDate}${r.returnDate ? '\nتاريخ الإرجاع: ' + r.returnDate : ''}\nالمجموع الكلي: ${grandTotal.toLocaleString()} د.ع`;
+    currentVoucherShareText = `${state.storeName} - سند إيجار\nالمستأجر: ${r.customer}\nالمعدات: ${r.equipName}\n${formatRentStartDisplay(r)}${r.status === 'returned' ? '\n' + formatRentReturnDisplay(r) : ''}\nالمجموع الكلي: ${grandTotal.toLocaleString()} د.ع`;
     document.getElementById('pdfVoucherModal').classList.add('open');
   }
 
@@ -1135,7 +1208,7 @@
   }
 
   function logAction(section, desc) {
-    const time = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const time = getNowDateAnd12Time().full12;
     state.logs.unshift({ section, desc, time });
     save();
   }
@@ -1148,7 +1221,7 @@
     } else {
       content.innerHTML = filtered.map(l => `
         <div class="history-item">
-          <div><b>${l.desc}</b><br><span style="color:#9ca3af;">${l.time}</span></div>
+          <div><b>${l.desc}</b><br><span style="color:#9ca3af;">${formatHistoryDateTime12(l.time)}</span></div>
         </div>
       `).join('');
     }
@@ -1186,7 +1259,7 @@
     if (isSavingInternal) return;
     isSavingInternal = true;
     try {
-      const nowStr = new Date().toISOString().replace('T', ' ').slice(0, 16);
+      const nowStr = getNowDateAnd12Time().full12;
       if (state.liveSync && state.liveSync.enabled) {
         state.liveSync.lastSyncDateTime = nowStr;
       }
@@ -1266,7 +1339,7 @@
       try {
         if (restoreFromParsedData(incoming, false)) {
           if (remoteTs > 0) setLocalSyncTs(remoteTs);
-          state.liveSync.lastSyncDateTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
+          state.liveSync.lastSyncDateTime = getNowDateAnd12Time().full12;
           state.liveSync.lastSyncStatus = 'تم السحب من السحابة';
           localStorage.setItem('sunbula_db_v30', JSON.stringify(state));
           applyTheme();
@@ -1290,7 +1363,7 @@
     const chkInput = document.getElementById('liveSyncEnabledInput');
     if (urlInput) state.liveSync.syncUrl = urlInput.value.trim();
     if (chkInput) state.liveSync.enabled = !!chkInput.checked;
-    state.liveSync.lastSyncDateTime = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    state.liveSync.lastSyncDateTime = getNowDateAnd12Time().full12;
     state.liveSync.lastSyncStatus = state.liveSync.enabled ? 'المزامنة التلقائية مفعّلة' : 'المزامنة التلقائية متوقفة';
     setLocalSyncTs(Date.now());
     save(true);
@@ -1328,9 +1401,8 @@
 
   function recordDriveBackupOperation(email, modeLabel = 'حفظ يدوي') {
     const snap = getSnapshotWithoutBackups();
-    const nowDate = new Date().toISOString().slice(0, 10);
-    const nowTime = new Date().toTimeString().slice(0, 5);
-    const nowStr = `${nowDate} ${nowTime}`;
+    const nowInfo = getNowDateAnd12Time();
+    const nowStr = nowInfo.full12;
 
     state.emailBackups[email] = {
       savedAt: nowStr,
@@ -1400,7 +1472,7 @@
     const bCfg = state.driveAutoBackup;
     const rCfg = state.driveAutoRestore;
     const syncCfg = state.liveSync;
-    const nowStr = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const nowStr = getNowDateAnd12Time().full12;
 
     state = {
       ...JSON.parse(JSON.stringify(op.data)),
@@ -1456,7 +1528,7 @@
     const backupCfg = state.driveAutoBackup;
     const restoreCfg = state.driveAutoRestore;
     const syncCfg = state.liveSync;
-    const nowStr = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const nowStr = getNowDateAnd12Time().full12;
 
     state = {
       ...JSON.parse(JSON.stringify(record.data)),
@@ -1480,8 +1552,8 @@
     if (!state.driveAutoBackup || !state.driveAutoBackup.enabled) return;
     const targetTime = state.driveAutoBackup.time || '07:40';
     const now = new Date();
-    const todayStr = now.toISOString().slice(0, 10);
-    const currentHHMM = now.toTimeString().slice(0, 5);
+    const todayStr = getTodayLocalDateStr();
+    const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     const runKey = `${todayStr} ${targetTime}`;
 
     if (currentHHMM >= targetTime && state.driveAutoBackup.lastRunDateTime !== runKey) {
@@ -1498,7 +1570,7 @@
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getSnapshotWithoutBackups(), null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `sunbula_${emailTag}${new Date().toISOString().slice(0,10)}.json`);
+    downloadAnchor.setAttribute("download", `sunbula_${emailTag}${getTodayLocalDateStr()}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -1984,9 +2056,9 @@
     const amount = parseFloat(document.getElementById('dAmount').value) || 0;
     const phone = document.getElementById('dPhone').value.trim() || 'لا يوجد';
     const note = document.getElementById('dNote').value.trim();
-    const now = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const nowFormatted = getNowDateAnd12Time().full12;
     if (!name) return alert('أدخل اسم العميل');
-    state.debts.unshift({ id: Date.now(), name, amount, phone, photo: pendingDebtPhoto || '', cardColor: '#ffffff', textColor: '#111827', history: [{ type: 'دين جديد', amount, date: now, note, bgColor: '#ffffff' }] });
+    state.debts.unshift({ id: Date.now(), name, amount, phone, photo: pendingDebtPhoto || '', cardColor: '#ffffff', textColor: '#111827', history: [{ type: 'دين جديد', amount, date: nowFormatted, note, bgColor: '#ffffff' }] });
     pendingDebtPhoto = '';
     logAction('الديون', `تسجيل دين جديد للعميل ${name}`);
     save(); closeModal('debtModal'); render();
@@ -2014,7 +2086,7 @@
     
     document.getElementById('ddHistoryList').innerHTML = (d.history || []).map((h, idx) => `
       <div class="history-item" style="${h.bgColor && h.bgColor !== '#ffffff' ? `background:${h.bgColor}; border:1px solid #cbd5e1;` : ''}" onclick="openEditHistory(${d.id}, ${idx})">
-        <div><span>${h.amount > 0 ? '⬇' : '⬆'}</span> <b>${h.type}</b> <span style="color:var(--debt-date-color);">(${h.date})</span>${h.note ? `<br><span style="color:#4b5563;">${h.note}</span>` : ''}</div>
+        <div><span>${h.amount > 0 ? '⬇' : '⬆'}</span> <b>${h.type}</b> <span style="color:var(--debt-date-color);">(${formatHistoryDateTime12(h.date)})</span>${h.note ? `<br><span style="color:#4b5563;">${h.note}</span>` : ''}</div>
         <b style="color:${h.amount > 0 ? '#2563eb' : '#dc2626'};">${h.amount > 0 ? '+' : ''}${h.amount.toLocaleString()} د.ع</b>
       </div>
     `).join('');
@@ -2056,7 +2128,7 @@
     if (amount <= 0) return alert('أدخل مبلغاً صحيحاً');
     const d = state.debts.find(x => x.id == id);
     d.amount += amount;
-    d.history.unshift({ type: 'دين جديد', amount, date: new Date().toISOString().replace('T', ' ').slice(0, 16), note, bgColor: '#ffffff' });
+    d.history.unshift({ type: 'دين جديد', amount, date: getNowDateAnd12Time().full12, note, bgColor: '#ffffff' });
     save(); openDebtDetail(d.id); render();
   }
   function payDebtAmount() {
@@ -2066,7 +2138,7 @@
     if (amount <= 0) return alert('أدخل مبلغاً صحيحاً');
     const d = state.debts.find(x => x.id == id);
     d.amount = Math.max(0, d.amount - amount);
-    d.history.unshift({ type: 'استلام دفعة', amount: -amount, date: new Date().toISOString().replace('T', ' ').slice(0, 16), note, bgColor: '#ffffff' });
+    d.history.unshift({ type: 'استلام دفعة', amount: -amount, date: getNowDateAnd12Time().full12, note, bgColor: '#ffffff' });
     save(); openDebtDetail(d.id); render();
   }
   function editCustomerInfo() {
@@ -2079,7 +2151,6 @@
     save(); openDebtDetail(d.id); render();
   }
 
-  // ====== دوال الإيجار والمعدات المتعددة ======
   function openEquipManage() {
     document.getElementById('equipManageList').innerHTML = state.equipments.map(eq => `
       <div style="display:flex; justify-content:space-between; align-items:center; background:#f9fafb; padding:8px; border-radius:10px; margin-bottom:6px; font-size:13px;">
@@ -2220,6 +2291,7 @@
     if (!customer) return alert('أدخل اسم المستأجر');
 
     const startDateVal = document.getElementById('rStartDate').value || getTodayLocalDateStr();
+    const startTimeVal = formatTime12HourFromDate(new Date());
     const autoDays = calculateDaysFromStartDate(startDateVal);
     const inputDays = Math.max(1, parseInt(document.getElementById('rDays').value, 10) || autoDays);
     const isCustomDays = inputDays !== autoDays;
@@ -2258,6 +2330,7 @@
       unitDailyPrice: unitDaily,
       phone: document.getElementById('rPhone').value || 'لا يوجد',
       startDate: startDateVal,
+      startTime12: startTimeVal,
       status: 'active',
       note,
       photo: pendingRentPhoto || '',
@@ -2268,7 +2341,7 @@
 
     draftRentItems = [];
     pendingRentPhoto = '';
-    logAction('الإيجار', `تأجير ${equipSummary} للمستأجر ${customer} بمجموع كلي ${totalCalculatedAmount.toLocaleString()} د.ع`);
+    logAction('الإيجار', `تأجير ${equipSummary} للمستأجر ${customer} (${startTimeVal}) بمجموع كلي ${totalCalculatedAmount.toLocaleString()} د.ع`);
     save(); closeModal('rentModal'); render();
   }
 
@@ -2309,6 +2382,7 @@
     const eq = state.equipments.find(x => String(x.id) === String(sel.value));
     const eqName = eq ? eq.name : (sel.selectedOptions[0] ? sel.selectedOptions[0].text.split(' (')[0] : 'معدة');
     const newDate = document.getElementById('rdNewEquipDate').value || getTodayLocalDateStr();
+    const newTime = formatTime12HourFromDate(new Date());
     const newCount = Math.max(1, parseInt(document.getElementById('rdNewEquipCount').value) || 1);
     const newItemPrice = parseFloat(document.getElementById('rdNewItemPrice').value) || 0;
     const newDailyPrice = parseFloat(document.getElementById('rdNewDailyPrice').value) || 0;
@@ -2330,6 +2404,7 @@
       unitDailyPrice: newDailyPrice,
       phone: parentRent.phone || 'لا يوجد',
       startDate: newDate,
+      startTime12: newTime,
       status: 'active',
       note: parentRent.note || '',
       photo: parentRent.photo || '',
@@ -2338,11 +2413,11 @@
       equipmentItems: [{ name: eqName, count: newCount, itemPrice: newItemPrice, dailyPrice: newDailyPrice, days: newDays }]
     });
 
-    logAction('الإيجار', `إضافة عدة جديدة (${eqName}) للمستأجر ${parentRent.customer} بتاريخ ${newDate}`);
+    logAction('الإيجار', `إضافة عدة جديدة (${eqName}) للمستأجر ${parentRent.customer} بتاريخ ${newDate} (${newTime})`);
     save();
     closeModal('rentDetailModal');
     render();
-    alert(`تم تسجيل العملية الجديدة بتاريخ ${newDate} مع الإبقاء على تاريخ العملية السابقة.`);
+    alert(`تم تسجيل العملية الجديدة بتاريخ ${newDate} (${newTime}) مع الإبقاء على تاريخ العملية السابقة.`);
   }
 
   function onRdDateChange() {
@@ -2467,9 +2542,13 @@
       photoImg.style.display = 'none';
     }
 
-    let extra = `تاريخ الأخذ: ${r.startDate} | الإيجار اليومي الكلي: ${breakdown.dailyTotal.toLocaleString()} د.ع/يوم | المجموع الكلي: <b>${breakdown.grandTotal.toLocaleString()} د.ع</b>`;
-    if(r.status === 'returned') {
-      extra += `<br>تاريخ الإرجاع: ${r.returnDate} | المبلغ المستلم: ${(r.amount || 0).toLocaleString()} د.ع`;
+    let extra = `${formatRentStartDisplay(r)}`;
+    if (r.status === 'returned') {
+      extra += ` | ${formatRentReturnDisplay(r)}`;
+    }
+    extra += `<br>الإيجار اليومي الكلي: ${breakdown.dailyTotal.toLocaleString()} د.ع/يوم | المجموع الكلي: <b>${breakdown.grandTotal.toLocaleString()} د.ع</b>`;
+    if (r.status === 'returned') {
+      extra += `<br>المبلغ المستلم: ${(r.amount || 0).toLocaleString()} د.ع`;
     }
     document.getElementById('rdExtraInfo').innerHTML = extra;
     document.getElementById('rentDetailModal').classList.add('open');
@@ -2490,6 +2569,7 @@
     r.customer = newCustomer;
     r.phone = newPhone;
     r.startDate = newStartDate;
+    if (!r.startTime12) r.startTime12 = formatTime12HourFromDate(new Date());
     r.days = editedDays;
 
     if (editedDays === autoDaysFromNewDate) {
@@ -2536,22 +2616,30 @@
     r.calculatedDue = grandTotal;
     document.getElementById('retRentId').value = r.id;
     document.getElementById('retEquipName').innerText = `${r.customer} — ${r.equipName}`;
-    document.getElementById('retDetails').innerHTML = `تاريخ الأخذ: ${r.startDate} | الإيجار اليومي: ${dailyTotal.toLocaleString()} د.ع/يوم`;
+    document.getElementById('retDetails').innerHTML = `${formatRentStartDisplay(r)} | الإيجار اليومي: ${dailyTotal.toLocaleString()} د.ع/يوم`;
     document.getElementById('retTotalDue').innerText = r.calculatedDue.toLocaleString() + ' د.ع';
     document.getElementById('returnRentModal').classList.add('open');
   }
 
   function finishReturnRent(type) {
     const r = state.rents.find(x => x.id == document.getElementById('retRentId').value);
+    const nowInfo = getNowDateAnd12Time();
     r.status = 'returned';
-    if (!r.startDate) r.startDate = getTodayLocalDateStr();
-    r.returnDate = getTodayLocalDateStr();
+    if (!r.startDate) r.startDate = nowInfo.dateStr;
+    if (!r.startTime12) r.startTime12 = nowInfo.time12;
+    r.returnDate = nowInfo.dateStr;
+    r.returnTime12 = nowInfo.time12;
     r.amount = r.calculatedDue;
     if (type === 'account') {
       let d = state.debts.find(x => x.name === r.customer);
-      if (d) d.amount += r.calculatedDue;
-      else state.debts.unshift({ id: Date.now(), name: r.customer, amount: r.calculatedDue, phone: r.phone, photo: r.photo || '', cardColor: '#ffffff', textColor: '#111827', history: [{ type: 'أجور إيجار', amount: r.calculatedDue, date: new Date().toISOString().replace('T', ' ').slice(0, 16), bgColor: '#ffffff' }] });
+      if (d) {
+        d.amount += r.calculatedDue;
+        d.history.unshift({ type: 'أجور إيجار', amount: r.calculatedDue, date: nowInfo.full12, bgColor: '#ffffff' });
+      } else {
+        state.debts.unshift({ id: Date.now(), name: r.customer, amount: r.calculatedDue, phone: r.phone, photo: r.photo || '', cardColor: '#ffffff', textColor: '#111827', history: [{ type: 'أجور إيجار', amount: r.calculatedDue, date: nowInfo.full12, bgColor: '#ffffff' }] });
+      }
     }
+    logAction('الإيجار', `استلام معدات (${r.equipName}) من ${r.customer} بتاريخ ${nowInfo.full12}`);
     save(); closeModal('returnRentModal'); render();
   }
 
@@ -2571,7 +2659,10 @@
           <div class="rent-big-name">${r.customer}</div>
           <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:10px; font-size:11px; font-weight:bold;">مستلم</span>
         </div>
-        <div class="rent-dates-inline">أخذ: ${r.startDate || '-'} | إرجاع: ${r.returnDate || '-'}</div>
+        <div class="rent-dates-inline">
+          ${formatRentStartDisplay(r)}<br>
+          ${formatRentReturnDisplay(r)}
+        </div>
         ${renderRentCardBreakdownHtml(r, true)}
       </div>
     `).join('');
@@ -2683,15 +2774,14 @@
         `).join('')}
       `;
     } 
-    // ====== قسم الإيجارات (لكل معدة سطر والعدد ومجموعها، ثم خط فاصل والمجموع الكلي) ======
     else if (currentTab === 'rents') {
       const activeRentsHtml = state.rents.filter(r => r.status === 'active').map(r => {
         return `
           <div class="card" onclick="openRentDetailModal(${r.id})" style="${getCardStyle(r.cardColor, r.textColor)} border-right: 4px solid #2563eb;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
               <div>
                 <div class="rent-big-name">${r.customer}</div>
-                <div style="font-size:11px; opacity:0.8; margin-top:2px;">البدء: ${r.startDate}${r.photo ? ' | 🖼️ مرفق صورة' : ''}</div>
+                <div class="rent-dates-inline">${formatRentStartDisplay(r)}${r.photo ? ' | 🖼️ مرفق صورة' : ''}</div>
               </div>
               <button class="btn btn-red" style="padding:5px 10px; font-size:11px;" onclick="openReturnModal(${r.id}, event)">استلام</button>
             </div>
